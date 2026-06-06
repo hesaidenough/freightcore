@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FreightCore — Login</title>
+<link href="https://db.onlinewebfonts.com/c/77e2c172ad2201a53a7462c14893bb10?family=Conthrax" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#f0f4f8;color:#1e293b;min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+body::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(59,130,246,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
+body::after{content:'';position:absolute;top:-150px;left:50%;transform:translateX(-50%);width:700px;height:400px;background:radial-gradient(ellipse,rgba(59,130,246,.08) 0%,transparent 70%);pointer-events:none}
+.box{background:#ffffff;border:1px solid rgba(59,130,246,.15);border-radius:18px;padding:48px 44px;width:100%;max-width:420px;position:relative;box-shadow:0 20px 60px rgba(30,41,59,.12),0 4px 16px rgba(59,130,246,.08)}
+.box::before{content:'';position:absolute;top:0;left:15%;right:15%;height:3px;background:linear-gradient(90deg,transparent,#3b82f6,#94a3b8,transparent);border-radius:0 0 3px 3px}
+.logo{text-align:center;margin-bottom:36px}
+.logo-mark{font-family:'Conthrax',system-ui;font-size:36px;font-weight:700;letter-spacing:3px;background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#64748b 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+.logo-sub{font-family:'Conthrax',system-ui;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#64748b;margin-top:6px}
+.logo-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(59,130,246,.3),rgba(148,163,184,.3),transparent);margin:14px auto;width:70%}
+.logo-co{text-align:center;line-height:1.4}
+.logo-co-line1{font-family:'Conthrax',system-ui;font-size:13px;font-weight:700;letter-spacing:2px;color:#1e293b;display:block}
+.logo-co-line2{font-family:'Conthrax',system-ui;font-size:13px;font-weight:700;letter-spacing:2px;color:#1e293b;display:block;margin-top:1px}
+.logo-co-systems{font-family:'Conthrax',system-ui;font-size:10px;letter-spacing:4px;color:#1e293b;display:block;text-align:center;margin-top:4px;text-transform:uppercase}
+.form-group{margin-bottom:18px}
+label{font-size:11px;color:#64748b;display:block;margin-bottom:6px;font-weight:600;letter-spacing:.8px;text-transform:uppercase}
+input{width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:11px 14px;color:#1e293b;font-size:14px;outline:none;transition:all .2s}
+input:focus{border-color:#3b82f6;background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.btn{width:100%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border:none;border-radius:8px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:10px;letter-spacing:.5px;box-shadow:0 4px 16px rgba(59,130,246,.3)}
+.btn:hover{background:linear-gradient(135deg,#60a5fa,#3b82f6);box-shadow:0 4px 24px rgba(59,130,246,.4);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.err{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:6px;padding:10px 14px;font-size:12px;margin-bottom:16px;display:none}
+.foot{font-size:10px;color:#94a3b8;text-align:center;margin-top:28px;letter-spacing:.5px;line-height:2}
+.foot b{color:#64748b;font-weight:600}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">
+    <div class="logo-mark">FreightCore</div>
+    <div class="logo-sub">Total Operations Platform</div>
+    <div class="logo-divider"></div>
+    <div class="logo-co">
+      <span class="logo-co-line1">Continental Freight</span>
+      <span class="logo-co-systems">Systems</span>
+    </div>
+  </div>
+  <div class="err" id="err"></div>
+  <div class="form-group">
+    <label>Username</label>
+    <input type="text" id="un" autocomplete="username" placeholder="Enter username">
+  </div>
+  <div class="form-group">
+    <label>Password</label>
+    <input type="password" id="pw" autocomplete="current-password" placeholder="Enter password">
+  </div>
+  <button class="btn" id="loginBtn" onclick="login()">Sign In</button>
+  <div class="foot">
+    <b>USDOT 2134343</b> &nbsp;·&nbsp; <b>MC 746701</b><br>
+    Highland, IN 46322
+  </div>
+</div>
+<script>
+document.addEventListener('keydown',function(e){if(e.key==='Enter')login();});
+async function login(){
+  var un=document.getElementById('un').value.trim();
+  var pw=document.getElementById('pw').value;
+  var err=document.getElementById('err');
+  var btn=document.getElementById('loginBtn');
+  err.style.display='none';
+  if(!un||!pw){err.textContent='Enter username and password';err.style.display='block';return;}
+  btn.textContent='Signing in...';btn.disabled=true;
+  try{
+    var r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:un,password:pw}),credentials:'include'});
+    var d=await r.json();
+    if(d.ok){window.location.href='/app';}
+    else{err.textContent=d.error||'Invalid credentials';err.style.display='block';}
+  }catch(e){err.textContent='Server error — please try again';err.style.display='block';}
+  btn.textContent='Sign In';btn.disabled=false;
+}
+fetch('/api/me',{credentials:'include'}).then(function(r){return r.json();}).then(function(d){if(d.username)window.location.href='/app';}).catch(function(){});
+</script>
+</body>
+</html>
