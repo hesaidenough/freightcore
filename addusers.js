@@ -14,3 +14,5 @@ mysql.createConnection({
   rows.forEach(r=>console.log(r.username, r.role));
   db.end();
 }).catch(e=>console.error('DB:',e.message));
+
+
