@@ -974,50 +974,62 @@ document.addEventListener('click', e => {
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function renderDash() {
-  const loads = allLoads(), del = loads.filter(l => l.status === 'Delivered');
-  const totalRev  = del.reduce((s,l) => s + l.amount, 0);
-  const yr        = new Date().getFullYear();
-  const ytd       = del.filter(l => (l.pu_date||'').startsWith(String(yr)));
-  const ytdRev    = ytd.reduce((s,l) => s + l.amount, 0);
-  const reps      = allRepairs().filter(r => r.amount != null);
-  const totalMaint= reps.reduce((s,r) => s + (r.amount||0), 0);
-  const fuelTotal = allFuel().reduce((s,f) => s + f.total, 0);
+  const loads    = allLoads();
+  const del      = loads.filter(l => l.status === 'Delivered');
+  const active   = loads.filter(l => l.status === 'In Transit' || l.status === 'Confirmed');
+  const totalRev = del.reduce((s,l) => s + l.amount, 0);
+  const yr       = new Date().getFullYear();
+  const mo       = new Date().getMonth() + 1;
+  const ytd      = del.filter(l => (l.pu_date||'').startsWith(String(yr)));
+  const ytdRev   = ytd.reduce((s,l) => s + l.amount, 0);
+  const mtd      = ytd.filter(l => {
+    const m = parseInt((l.pu_date||'').slice(5,7));
+    return m === mo;
+  });
+  const mtdRev   = mtd.reduce((s,l) => s + l.amount, 0);
+  const reps     = allRepairs().filter(r => r.amount != null);
+  const totalMaint = reps.reduce((s,r) => s + (r.amount||0), 0);
+  const fuelTotal  = allFuel().reduce((s,f) => s + f.total, 0);
+  const netYTD     = ytdRev - totalMaint - fuelTotal;
 
   $('kpi-row').innerHTML = `
-    <div class="kpi green"><div class="kpi-label">Total Loads</div><div class="kpi-value">${loads.length.toLocaleString()}</div><div class="kpi-sub">All time</div></div>
-    <div class="kpi blue"><div class="kpi-label">Total Revenue</div><div class="kpi-value">${f$(totalRev)}</div></div>
-    <div class="kpi teal"><div class="kpi-label">YTD ${yr}</div><div class="kpi-value">${f$(ytdRev)}</div><div class="kpi-sub">${ytd.length} loads</div></div>
-    <div class="kpi orange"><div class="kpi-label">Maintenance</div><div class="kpi-value">${f$(totalMaint)}</div><div class="kpi-sub">${reps.length} entries</div></div>
-    <div class="kpi purple"><div class="kpi-label">Fuel Cost</div><div class="kpi-value">${f$(fuelTotal)}</div><div class="kpi-sub">${allFuel().length} txns</div></div>
-    <div class="kpi yellow"><div class="kpi-label">Fleet Units</div><div class="kpi-value">${allEquip().length}</div></div>
+    <div class="kpi green"><div class="kpi-label">YTD Revenue ${yr}</div><div class="kpi-value">${f$(ytdRev)}</div><div class="kpi-sub">${ytd.length} loads delivered</div></div>
+    <div class="kpi blue"><div class="kpi-label">MTD Revenue</div><div class="kpi-value">${f$(mtdRev)}</div><div class="kpi-sub">${mtd.length} loads this month</div></div>
+    <div class="kpi teal"><div class="kpi-label">Active Loads</div><div class="kpi-value">${active.length}</div><div class="kpi-sub">${loads.filter(l=>l.status==='In Transit').length} in transit</div></div>
+    <div class="kpi orange"><div class="kpi-label">Maintenance YTD</div><div class="kpi-value">${f$(totalMaint)}</div><div class="kpi-sub">${reps.length} entries</div></div>
+    <div class="kpi purple"><div class="kpi-label">Fuel Cost YTD</div><div class="kpi-value">${f$(fuelTotal)}</div><div class="kpi-sub">${allFuel().length} transactions</div></div>
+    <div class="kpi ${netYTD>=0?'yellow':'red'}"><div class="kpi-label">Net YTD</div><div class="kpi-value">${f$(netYTD)}</div><div class="kpi-sub">After fuel & maint.</div></div>
   `;
 
+  // Revenue by driver chart
   const cols = ['#3b82f6','#22c55e','#f97316','#a855f7','#f59e0b','#14b8a6','#ec4899','#8b5cf6','#ef4444','#06b6d4'];
   const rbd  = {};
-  DRIVER_LIST.forEach(d => { rbd[d] = del.filter(l => l.driver === d).reduce((s,l) => s + l.amount, 0); });
+  DRIVER_LIST.forEach(d => { rbd[d] = ytd.filter(l => l.driver === d || (l.split && l.split.driver2 === d)).reduce((s,l) => s + l.amount, 0); });
   const maxR = Math.max(...Object.values(rbd), 1);
-  $('rev-chart').innerHTML = Object.entries(rbd).map(([d,r],i) =>
+  $('rev-chart').innerHTML = Object.entries(rbd).sort(([,a],[,b])=>b-a).map(([d,r],i) =>
     `<div class="bcol"><div class="btt">${d}: ${f$(r)}</div>
      <div class="bbar" style="height:${Math.max(3, r/maxR*115)}px;background:${cols[i%cols.length]}"></div>
-     <div class="blabel">${d.slice(0,4)}</div></div>`
+     <div class="blabel">${d.slice(0,5)}</div></div>`
   ).join('');
 
+  // Monthly volume chart — last 12 months
   const mv = {};
-  loads.forEach(l => { const m = (l.pu_date||l.del_date||'').slice(0,7); if (m) mv[m] = (mv[m]||0)+1; });
-  const sm   = Object.entries(mv).sort(([a],[b]) => a.localeCompare(b)).slice(-18);
-  const maxV = Math.max(...sm.map(([,v]) => v), 1);
+  ytd.forEach(l => { const m = (l.pu_date||l.del_date||'').slice(0,7); if (m) mv[m] = (mv[m]||{loads:0,rev:0}), mv[m].loads++, mv[m].rev += l.amount; });
+  const sm   = Object.entries(mv).sort(([a],[b]) => a.localeCompare(b));
+  const maxV = Math.max(...sm.map(([,v]) => v.loads), 1);
   $('vol-chart').innerHTML = sm.map(([m,v]) =>
-    `<div class="bcol"><div class="btt">${m}: ${v}</div>
-     <div class="bbar" style="height:${Math.max(3, v/maxV*115)}px;background:#3b82f6"></div>
+    `<div class="bcol"><div class="btt">${m}: ${v.loads} loads · ${f$(v.rev)}</div>
+     <div class="bbar" style="height:${Math.max(3, v.loads/maxV*115)}px;background:#3b82f6"></div>
      <div class="blabel">${m.slice(5)}</div></div>`
   ).join('');
 
+  // Recent loads — last 20
   const rec = [...loads].sort((a,b) => (b.pu_date||'').localeCompare(a.pu_date||'')).slice(0,20);
   $('recent-tb').innerHTML = rec.map(l =>
     `<tr>
       <td style="font-weight:700;color:var(--blue)">${l.id}</td>
-      <td>${dBadge(l.driver)}</td>
-      <td style="max-width:170px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${l.route||l.pu_city+'→'+l.del_city}</td>
+      <td>${dBadge(l.driver)}${l.split?`<span class="badge bt" style="font-size:8px;margin-left:2px">⇄</span>`:''}</td>
+      <td style="max-width:170px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${l.pu_city||''}→${l.del_city||''}</td>
       <td>${fD(l.pu_date)}</td><td>${fD(l.del_date)}</td>
       <td style="color:var(--text2);font-size:11px">${(l.customer||'').slice(0,18)}</td>
       <td style="color:var(--green);font-weight:600">${f$(l.amount)}</td>
