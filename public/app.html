@@ -180,18 +180,18 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
 
 <!-- MODAL: Load -->
 <div class="mo" id="mLoad">
-  <div class="modal">
+  <div class="modal" style="max-width:960px">
     <div class="mhdr"><span class="mtitle" id="mLoad-title">📦 New Load</span><button class="mclose" onclick="closeM('mLoad')">✕</button></div>
     <div class="mbody">
       <div class="fg">
         <div class="fitem"><label>Load #</label><input id="fl_id" placeholder="Auto"></div>
         <div class="fitem"><label>Schedule #</label><input id="fl_sched"></div>
         <div class="fitem"><label>Status</label><select id="fl_stat"><option>Confirmed</option><option>In Transit</option><option>Delivered</option><option>TONU</option><option>Cancelled</option></select></div>
-        <div class="fitem"><label>Driver</label><select id="fl_drv"><option value="">-- Select --</option></select></div>
+        <div class="fitem"><label>Driver 1</label><select id="fl_drv"><option value="">-- Select --</option></select></div>
         <div class="fitem"><label>Truck</label><input id="fl_truck"></div>
         <div class="fitem"><label>Trailer</label><input id="fl_trailer"></div>
         <div class="fitem s2 ac-wrap"><label>Customer / Broker</label>
-          <input id="fl_cust" autocomplete="off" oninput="brokerAC(this.value)" placeholder="Type 3+ letters for auto-complete…">
+          <input id="fl_cust" autocomplete="off" oninput="brokerAC(this.value)" placeholder="Type 3+ letters…">
           <div class="ac-drop" id="broker-ac"></div>
         </div>
         <div class="fitem s2" id="broker-info-strip" style="display:none">
@@ -201,10 +201,14 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
             <span id="bk-mc" style="color:var(--text3)"></span>
             <span id="bk-credit"></span>
             <span id="bk-addr" style="color:var(--text2)"></span>
-            <button type="button" onclick="clearBrokerStrip()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px" title="Clear">✕</button>
+            <button type="button" onclick="clearBrokerStrip()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px">✕</button>
           </div>
         </div>
         <div class="fitem"><label>Broker Load #</label><input id="fl_blnum"></div>
+        <div class="fitem"><label>Load Amount ($)</label><input type="number" id="fl_amt" step="0.01"></div>
+        <div class="fitem"><label>Stop Bonus ($/stop)</label><input type="number" id="fl_stopbonus" step="0.01" placeholder="0"></div>
+        <div class="fitem"><label>Special</label><input id="fl_sp" placeholder="TONU / TANKER / etc"></div>
+        <!-- PU/DEL always visible -->
         <div class="fitem"><label>PU Date</label><input type="date" id="fl_pudt"></div>
         <div class="fitem"><label>PU City</label><input id="fl_puci"></div>
         <div class="fitem"><label>PU State</label><input id="fl_pust" maxlength="2"></div>
@@ -213,15 +217,49 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
         <div class="fitem"><label>DEL City</label><input id="fl_dlci"></div>
         <div class="fitem"><label>DEL State</label><input id="fl_dlst" maxlength="2"></div>
         <div class="fitem"><label>DEL ZIP</label><input id="fl_dlzip" maxlength="5"></div>
-        <div class="fitem"><label>Load Amount ($)</label><input type="number" id="fl_amt" step="0.01"></div>
         <div class="fitem"><label>Empty Miles</label><input type="number" id="fl_emi"></div>
         <div class="fitem"><label>Loaded Miles</label><input type="number" id="fl_lmi"></div>
-        <div class="fitem"><label>Special (TONU/TANKER)</label><input id="fl_sp"></div>
-        <div class="fitem s3"><label>Route (auto-builds)</label><input id="fl_route" readonly style="color:var(--text2)"></div>
+        <div class="fitem s2"><label>Route (auto-builds)</label><input id="fl_route" readonly style="color:var(--text2)"></div>
       </div>
+
+      <!-- SPLIT LOAD TOGGLE -->
+      <div style="margin:14px 0 8px;padding:10px 14px;background:var(--bg4);border-radius:var(--radius);border:1px solid var(--border)">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:600">
+          <input type="checkbox" id="fl_split" onchange="toggleSplit()" style="width:16px;height:16px">
+          ⇄ Split Load (multiple drivers)
+        </label>
+        <div id="split-section" style="display:none;margin-top:12px">
+          <div class="fg">
+            <div class="fitem"><label>Driver 2</label><select id="fl_drv2"><option value="">-- Select --</option></select></div>
+            <div class="fitem"><label>D1 Empty Miles</label><input type="number" id="fl_d1emi" placeholder="0"></div>
+            <div class="fitem"><label>D1 Loaded Miles</label><input type="number" id="fl_d1lmi" placeholder="0"></div>
+            <div class="fitem"><label>D2 Empty Miles</label><input type="number" id="fl_d2emi" placeholder="0"></div>
+            <div class="fitem"><label>D2 Loaded Miles</label><input type="number" id="fl_d2lmi" placeholder="0"></div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Pay per driver type: OO = prorated % of gross · per-mile = miles × rate · per-day = unaffected</div>
+        </div>
+      </div>
+
+      <!-- MULTI-STOP TOGGLE -->
+      <div style="margin:8px 0 8px;padding:10px 14px;background:var(--bg4);border-radius:var(--radius);border:1px solid var(--border)">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:600">
+          <input type="checkbox" id="fl_multistop" onchange="toggleMultiStop()" style="width:16px;height:16px">
+          📍 Multi-Stop Load (add extra stops)
+        </label>
+        <div id="stops-section" style="display:none;margin-top:12px">
+          <div id="stops-list"></div>
+          <button type="button" onclick="addStop('PU')" style="margin-right:8px;margin-top:8px" class="btn btn-ghost btn-sm">+ Pickup Stop</button>
+          <button type="button" onclick="addStop('DEL')" style="margin-top:8px" class="btn btn-ghost btn-sm">+ Delivery Stop</button>
+        </div>
+        <div id="single-stop-fields" style="display:none"></div>
+      </div>
+
       <input type="hidden" id="fl_edit_idx" value="">
     </div>
-    <div class="mfoot"><button class="btn btn-ghost" onclick="closeM('mLoad')">Cancel</button><button class="btn btn-primary" onclick="saveLoad()">💾 Save Load</button></div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="closeM('mLoad')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLoad()">💾 Save Load</button>
+    </div>
   </div>
 </div>
 
@@ -1012,14 +1050,35 @@ function renderLB() {
   $('lb-tb').innerHTML = ls.map(l => {
     const xIdx = xLoads.findIndex(x => x.id === l.id && x.driver === l.driver);
     const isX  = xIdx >= 0;
+    const dbIdx = LOADS_DB.findIndex(x=>x.id===l.id&&x.driver===l.driver);
     let rs = '';
     if (l.status === 'Delivered') rs = 'background:rgba(34,197,94,.05)';
     else if (l.tonu)              rs = 'background:rgba(245,158,11,.05)';
     else if (l.status === 'Cancelled') rs = 'background:rgba(239,68,68,.05)';
-    return `<tr style="${rs}">
-      <td style="font-weight:700;color:var(--blue)">${l.id}</td>
+    const hasSplit = !!(l.split && l.split.driver2);
+    const hasStops = !!(l.stops && l.stops.length > 1);
+    const splitBadge = hasSplit ? `<span class="badge bt" style="font-size:9px;margin-left:3px">⇄ ${l.split.driver2}</span>` : '';
+    const stopBadge  = hasStops ? `<span class="badge bp" style="font-size:9px;margin-left:3px">📍${l.stops.length}</span>` : '';
+    const rowId = 'lbrow-' + l.id.replace(/[^a-z0-9]/gi,'');
+    const detail = (hasSplit || hasStops) ? `
+      <tr id="${rowId}-detail" style="display:none;background:var(--bg4)">
+        <td colspan="17" style="padding:10px 14px;font-size:11px">
+          ${hasSplit ? `<div style="margin-bottom:6px"><b style="color:var(--teal)">⇄ SPLIT:</b>
+            ${dBadge(l.driver)} D1: ${l.split.d1_empty||0}mi empty + ${l.split.d1_loaded||0}mi loaded
+            &nbsp;|&nbsp; ${dBadge(l.split.driver2)} D2: ${l.split.d2_empty||0}mi empty + ${l.split.d2_loaded||0}mi loaded
+          </div>` : ''}
+          ${hasStops ? `<div><b style="color:var(--purple)">📍 STOPS:</b> ${l.stops.map((s,i)=>
+            `<span class="badge ${s.type==='PU'?'bb':'bg'}" style="font-size:9px">${s.type}</span> ${s.city},${s.state} ${s.date?fD(s.date):''} ${s.miles_to_next?'→'+s.miles_to_next+'mi':''}`
+          ).join(' &nbsp; ')}</div>` : ''}
+          ${l.stop_bonus ? `<div style="margin-top:4px;color:var(--yellow)">Stop bonus: ${f$(l.stop_bonus)}/stop</div>` : ''}
+        </td>
+      </tr>` : '';
+    const expandBtn = (hasSplit || hasStops) ? `<button onclick="toggleLBRow('${rowId}')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px" title="Expand">▶</button>` : '';
+
+    return `<tr style="${rs}" id="${rowId}">
+      <td style="font-weight:700;color:var(--blue)">${l.id}${expandBtn}</td>
       <td style="color:var(--text2);font-size:11px">${l.sched||'—'}</td>
-      <td>${dBadge(l.driver)}</td>
+      <td>${dBadge(l.driver)}${splitBadge}${stopBadge}</td>
       <td style="white-space:nowrap">${fD(l.pu_date)}</td>
       <td style="font-size:11px;color:var(--text3)">${l.pu_zip||'—'}</td>
       <td style="font-size:11px">${l.pu_city||''},${l.pu_st||''}</td>
@@ -1035,9 +1094,20 @@ function renderLB() {
       <td style="font-size:11px">${l.tanker ? '<span class="badge bp">TNK</span>' : (l.special||'')}</td>
       <td>${isX
         ? `<button class="edit-btn" title="Edit" onclick="editLoad(${xIdx})">✏</button>`
-        : `<button class="edit-btn" title="Edit" onclick="editLoadDB(${LOADS_DB.findIndex(x=>x.id===l.id&&x.driver===l.driver)})">✏</button>`}</td>
-    </tr>`;
+        : `<button class="edit-btn" title="Edit" onclick="editLoadDB(${dbIdx})">✏</button>`}</td>
+    </tr>${detail}`;
   }).join('');
+}
+
+function toggleLBRow(id) {
+  const detail = document.getElementById(id+'-detail');
+  const row    = document.getElementById(id);
+  if (!detail) return;
+  const open = detail.style.display !== 'none';
+  detail.style.display = open ? 'none' : 'table-row';
+  // Rotate expand button
+  const btn = row?.querySelector('button');
+  if (btn) btn.textContent = open ? '▶' : '▼';
 }
 
 function clearLB() {
@@ -1047,12 +1117,94 @@ function clearLB() {
 }
 
 // ── LOAD CRUD ─────────────────────────────────────────────────────────────────
+// ── SPLIT LOAD & MULTI-STOP ───────────────────────────────────────────────────
+let loadStops = []; // temp stop list while modal is open
+
+function toggleSplit() {
+  const on = $('fl_split').checked;
+  $('split-section').style.display = on ? 'block' : 'none';
+}
+
+function toggleMultiStop() {
+  const on = $('fl_multistop').checked;
+  $('stops-section').style.display = on ? 'block' : 'none';
+  $('single-stop-fields').style.display = on ? 'none' : 'block';
+  if (on && loadStops.length === 0) { addStop('PU'); addStop('DEL'); }
+  renderStops();
+}
+
+function addStop(type) {
+  loadStops.push({ id: Date.now(), seq: loadStops.length + 1, type, city:'', state:'', zip:'', date:'', notes:'', miles_to_next:0 });
+  renderStops();
+}
+
+function removeStop(id) {
+  loadStops = loadStops.filter(s => s.id !== id);
+  loadStops.forEach((s,i) => s.seq = i+1);
+  renderStops();
+}
+
+function updateStop(id, field, val) {
+  const s = loadStops.find(s => s.id === id);
+  if (s) s[field] = field === 'miles_to_next' ? (parseInt(val)||0) : val.toUpperCase();
+  buildRouteFromStops();
+}
+
+function renderStops() {
+  const el = $('stops-list'); if (!el) return;
+  el.innerHTML = loadStops.map((s,i) => `
+    <div style="display:grid;grid-template-columns:60px 1fr 60px 80px 100px 80px 1fr 30px;gap:6px;align-items:center;margin-bottom:6px;padding:8px;background:var(--bg5);border-radius:6px;border-left:3px solid ${s.type==='PU'?'var(--blue)':'var(--green)'}">
+      <select onchange="updateStop(${s.id},'type',this.value)" style="font-size:11px;padding:3px">
+        <option ${s.type==='PU'?'selected':''}>PU</option>
+        <option ${s.type==='DEL'?'selected':''}>DEL</option>
+      </select>
+      <input value="${s.city}" placeholder="City" oninput="updateStop(${s.id},'city',this.value)" style="font-size:12px;padding:4px 6px">
+      <input value="${s.state}" placeholder="ST" maxlength="2" oninput="updateStop(${s.id},'state',this.value)" style="font-size:12px;padding:4px 6px">
+      <input value="${s.zip}" placeholder="ZIP" maxlength="5" oninput="updateStop(${s.id},'zip',this.value)" style="font-size:12px;padding:4px 6px">
+      <input type="date" value="${s.date}" onchange="updateStop(${s.id},'date',this.value)" style="font-size:11px;padding:3px">
+      <input type="number" value="${s.miles_to_next||''}" placeholder="Mi→next" oninput="updateStop(${s.id},'miles_to_next',this.value)" style="font-size:11px;padding:3px;text-align:right" title="Miles to next stop">
+      <input value="${s.notes||''}" placeholder="Notes (optional)" oninput="updateStop(${s.id},'notes',this.value)" style="font-size:11px;padding:4px 6px;color:var(--text2)">
+      <button onclick="removeStop(${s.id})" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:16px;padding:0">✕</button>
+    </div>`).join('');
+}
+
+function buildRouteFromStops() {
+  if (!$('fl_multistop')?.checked) return;
+  const parts = loadStops.map(s => `${s.type}: ${s.city}${s.state?','+s.state:''}`).filter(s=>s.length>4);
+  const el = $('fl_route'); if (el) el.value = parts.join(' → ');
+}
+
+// Calculate split pay for a driver
+function calcSplitPay(driver, eMi, lMi, totalMi, gross, stopBonus, stopCount) {
+  const p = PAY[driver] || PAY['WORLD WAY'];
+  let pay = 0;
+  if (p.type === 'oo') {
+    const pct = totalMi > 0 ? (eMi + lMi) / totalMi : 0.5;
+    pay = gross * p.pct * pct;
+  } else if (p.type === 'permile') {
+    pay = (eMi + lMi) * p.rate;
+    if (p.floor && pay < p.floor) pay = p.floor;
+  } else {
+    // daily — unaffected by split, pay calculated separately via statement
+    pay = 0;
+  }
+  pay += (stopBonus || 0) * (stopCount || 0);
+  return pay;
+}
+
 function openNewLoad() {
   $('mLoad-title').textContent = '📦 New Load';
   ['fl_id','fl_sched','fl_truck','fl_trailer','fl_cust','fl_blnum',
    'fl_pudt','fl_puci','fl_pust','fl_puzip','fl_dldt','fl_dlci','fl_dlst','fl_dlzip',
-   'fl_amt','fl_emi','fl_lmi','fl_sp','fl_route'].forEach(id => { const e=$(id); if(e) e.value=''; });
-  $('fl_drv').value = ''; $('fl_stat').value = 'Confirmed'; $('fl_edit_idx').value = '';
+   'fl_amt','fl_emi','fl_lmi','fl_sp','fl_route','fl_stopbonus',
+   'fl_d1emi','fl_d1lmi','fl_d2emi','fl_d2lmi'].forEach(id => { const e=$(id); if(e) e.value=''; });
+  $('fl_drv').value = ''; $('fl_drv2').value = '';
+  $('fl_stat').value = 'Confirmed'; $('fl_edit_idx').value = '';
+  $('fl_split').checked = false; $('fl_multistop').checked = false;
+  $('split-section').style.display = 'none';
+  $('stops-section').style.display = 'none';
+  $('single-stop-fields').style.display = 'block';
+  loadStops = [];
   clearBrokerStrip();
   openM('mLoad');
 }
@@ -1081,17 +1233,80 @@ function editLoad(idx) {
   $('fl_amt').value    = l.amount||'';   $('fl_emi').value     = l.empty_miles||'';
   $('fl_lmi').value    = l.miles||'';    $('fl_sp').value      = l.special||'';
   $('fl_route').value  = l.route||'';    $('fl_edit_idx').value = idx;
-  // Show broker info strip if broker is on file
+  $('fl_stopbonus').value = l.stop_bonus||'';
+
+  // Restore split
+  const hasSplit = !!(l.split && l.split.driver2);
+  $('fl_split').checked = hasSplit;
+  $('split-section').style.display = hasSplit ? 'block' : 'none';
+  if (hasSplit) {
+    $('fl_drv2').value  = l.split.driver2||'';
+    $('fl_d1emi').value = l.split.d1_empty||'';
+    $('fl_d1lmi').value = l.split.d1_loaded||'';
+    $('fl_d2emi').value = l.split.d2_empty||'';
+    $('fl_d2lmi').value = l.split.d2_loaded||'';
+  }
+
+  // Restore stops
+  const hasStops = !!(l.stops && l.stops.length > 0);
+  $('fl_multistop').checked = hasStops;
+  $('stops-section').style.display = hasStops ? 'block' : 'none';
+  $('single-stop-fields').style.display = hasStops ? 'none' : 'block';
+  loadStops = hasStops ? l.stops.map(s => ({...s, id: s.id||Date.now()+Math.random()})) : [];
+  if (hasStops) renderStops();
+
   clearBrokerStrip();
   if (l.customer) {
     const b = xBrokers.find(b => b.name.toUpperCase() === l.customer.toUpperCase());
-    if (b) selectBrokerFull(JSON.stringify(b));
+    if (b) { const idx2 = xBrokers.indexOf(b); selectBrokerFull(idx2); }
   }
   openM('mLoad');
 }
 
 function saveLoad() {
   const idx = $('fl_edit_idx').value;
+  const isSplit    = $('fl_split')?.checked;
+  const isMultiStop= $('fl_multistop')?.checked;
+
+  // Build stops from multi-stop or single fields
+  let stops = null, pu_city='', pu_st='', pu_zip='', pu_date='', del_city='', del_st='', del_zip='', del_date='';
+  if (isMultiStop && loadStops.length > 0) {
+    stops = loadStops.map(s => ({...s}));
+    const first = loadStops.find(s=>s.type==='PU') || loadStops[0];
+    const last  = [...loadStops].reverse().find(s=>s.type==='DEL') || loadStops[loadStops.length-1];
+    pu_city=first.city; pu_st=first.state; pu_zip=first.zip; pu_date=first.date;
+    del_city=last.city; del_st=last.state; del_zip=last.zip; del_date=last.date;
+  } else {
+    pu_date  = $('fl_pudt').value; pu_city  = $('fl_puci').value.toUpperCase();
+    pu_st    = $('fl_pust').value.toUpperCase(); pu_zip = $('fl_puzip').value;
+    del_date = $('fl_dldt').value; del_city = $('fl_dlci').value.toUpperCase();
+    del_st   = $('fl_dlst').value.toUpperCase(); del_zip= $('fl_dlzip').value;
+  }
+
+  // Build split
+  let split = null;
+  if (isSplit && $('fl_drv2').value) {
+    split = {
+      driver2:   $('fl_drv2').value,
+      d1_empty:  parseInt($('fl_d1emi').value)||0,
+      d1_loaded: parseInt($('fl_d1lmi').value)||0,
+      d2_empty:  parseInt($('fl_d2emi').value)||0,
+      d2_loaded: parseInt($('fl_d2lmi').value)||0,
+    };
+  }
+
+  // Total miles
+  let totalEmpty = 0, totalLoaded = 0;
+  if (split) {
+    totalEmpty  = split.d1_empty  + split.d2_empty;
+    totalLoaded = split.d1_loaded + split.d2_loaded;
+  } else if (isMultiStop) {
+    totalLoaded = loadStops.reduce((s,st)=>s+(st.miles_to_next||0),0);
+  } else {
+    totalEmpty  = parseInt($('fl_emi').value)||0;
+    totalLoaded = parseInt($('fl_lmi').value)||0;
+  }
+
   const l = {
     id:           $('fl_id').value.trim() || 'LB-'+Date.now(),
     sched:        $('fl_sched').value.trim(),
@@ -1100,33 +1315,31 @@ function saveLoad() {
     trailer:      $('fl_trailer').value,
     customer:     $('fl_cust').value,
     broker_load:  $('fl_blnum').value,
-    pu_date:      $('fl_pudt').value,
-    pu_city:      $('fl_puci').value.toUpperCase(),
-    pu_st:        $('fl_pust').value.toUpperCase(),
-    pu_zip:       $('fl_puzip').value,
-    del_date:     $('fl_dldt').value,
-    del_city:     $('fl_dlci').value.toUpperCase(),
-    del_st:       $('fl_dlst').value.toUpperCase(),
-    del_zip:      $('fl_dlzip').value,
-    amount:       parseFloat($('fl_amt').value) || 0,
-    empty_miles:  parseInt($('fl_emi').value)   || 0,
-    miles:        parseInt($('fl_lmi').value)   || 0,
+    pu_date, pu_city, pu_st, pu_zip,
+    del_date, del_city, del_st, del_zip,
+    amount:       parseFloat($('fl_amt').value)||0,
+    empty_miles:  totalEmpty,
+    miles:        totalLoaded,
     status:       $('fl_stat').value,
     special:      $('fl_sp').value,
     tonu:         $('fl_sp').value.toUpperCase().includes('TONU'),
     tanker:       $('fl_sp').value.toUpperCase().includes('TANKER'),
     route:        $('fl_route').value,
+    stop_bonus:   parseFloat($('fl_stopbonus').value)||0,
+    split:        split,
+    stops:        stops,
   };
+
   if (!l.driver) { toast('Select a driver', true); return; }
   if (idx !== '') xLoads[parseInt(idx)] = l; else xLoads.push(l);
   localStorage.setItem('cfs_xloads', JSON.stringify(xLoads));
-  // Auto-add broker if new
   if (l.customer && !xBrokers.find(b => b.name.toUpperCase() === l.customer.toUpperCase())) {
     xBrokers.push({name:l.customer,addr:'',city:'',state:'',zip:'',phone:'',email:'',contact:'',mc:'',credit:'',notes:''});
     localStorage.setItem('cfs_brokers', JSON.stringify(xBrokers));
   }
   closeM('mLoad');
   toast(idx !== '' ? 'Load updated ✓' : 'Load saved ✓');
+  renderLB(); renderDash();
 }
 
 // ── STATEMENTS ────────────────────────────────────────────────────────────────
@@ -1241,15 +1454,37 @@ function renderStmt() {
   const tkInfo = getTruck(pay.truck);
   const trlInfo= getTrailer(pay.trailer);
 
-  // Loads: delivered, this driver, PU or DEL date in the week window
-  const loads = allLoads().filter(l =>
-    l.driver === drv && l.status === 'Delivered' &&
-    (inWeek(l.pu_date, wkStart) || inWeek(l.del_date, wkStart))
-  );
+  // Loads: delivered, this driver (primary OR split driver2), PU or DEL date in week
+  const loads = allLoads().filter(l => {
+    const isDriver1 = l.driver === drv;
+    const isDriver2 = l.split && l.split.driver2 === drv;
+    if (!isDriver1 && !isDriver2) return false;
+    if (l.status !== 'Delivered') return false;
+    return inWeek(l.pu_date, wkStart) || inWeek(l.del_date, wkStart);
+  });
 
-  const totalAmt    = loads.reduce((s,l) => s + l.amount, 0);
-  const totalEmpty  = loads.reduce((s,l) => s + (l.empty_miles||0), 0);
-  const totalLoaded = loads.reduce((s,l) => s + (l.miles||0), 0);
+  // Build per-load pay objects with split-aware miles and amounts
+  const loadRows = loads.map(l => {
+    const isD2   = l.split && l.split.driver2 === drv;
+    const eMi    = isD2 ? (l.split.d2_empty||0)  : (l.split ? (l.split.d1_empty||0)  : (l.empty_miles||0));
+    const lMi    = isD2 ? (l.split.d2_loaded||0) : (l.split ? (l.split.d1_loaded||0) : (l.miles||0));
+    const totMi  = (l.empty_miles||0) + (l.miles||0);
+    const stops  = l.stops && l.stops.length > 1;
+    const bonus  = l.stop_bonus || 0;
+    const stopCt = stops ? l.stops.filter(s => s.type === 'DEL').length : (l.split ? 1 : 0);
+    const rowAmt = l.split
+      ? calcSplitPay(drv, eMi, lMi, totMi, l.amount, bonus, stopCt)
+      : (pay.type === 'permile' ? (eMi+lMi)*pay.rate : pay.type === 'oo' ? l.amount*pay.pct : l.amount);
+    // Route for this driver's leg
+    const route = isD2
+      ? `${l.pu_city||''},${l.pu_st||''} → ${l.del_city||''},${l.del_st||''} (D2)`
+      : `${l.pu_city||''},${l.pu_st||''} ${l.pu_zip||''} - ${l.del_city||''},${l.del_st||''} ${l.del_zip||''}`;
+    return { l, isD2, eMi, lMi, rowAmt, route, stops, bonus, stopCt };
+  });
+
+  const totalAmt    = loadRows.reduce((s,r) => s + r.rowAmt, 0);
+  const totalEmpty  = loadRows.reduce((s,r) => s + r.eMi, 0);
+  const totalLoaded = loadRows.reduce((s,r) => s + r.lMi, 0);
   const totalMiles  = totalEmpty + totalLoaded;
 
   // Fuel used this week by this driver
@@ -1327,12 +1562,12 @@ function renderStmt() {
           <th style="${TH}right">TOTAL AMOUNT DUE</th>
         </tr></thead>
         <tbody>
-          ${loads.length ? loads.map(l => `<tr>
+          ${loadRows.length ? loadRows.map(({l, isD2, rowAmt, route}) => `<tr>
             <td style="${TD}white-space:nowrap">${fSlash(l.pu_date)}</td>
-            <td style="${TD}font-weight:700">${l.id}</td>
-            <td style="${TD}">${l.pu_city||''},${l.pu_st||''} ${l.pu_zip||''} - ${l.del_city||''},${l.del_st||''} ${l.del_zip||''}</td>
+            <td style="${TD}font-weight:700">${l.id}${isD2?'<span class="badge bt" style="font-size:8px;margin-left:4px">D2</span>':''}</td>
+            <td style="${TD}">${route}</td>
             <td style="${TD}text-align:right;color:var(--yellow)">${f$(l.amount)}</td>
-            <td style="${TD}text-align:right;color:var(--green);font-weight:700">${f$(l.amount * pay.pct)}</td>
+            <td style="${TD}text-align:right;color:var(--green);font-weight:700">${f$(rowAmt)}</td>
           </tr>`).join('') : noLoads(5)}
         </tbody>
         <tfoot><tr style="background:var(--bg4);font-weight:800;border-top:2px solid var(--border2)">
@@ -1416,15 +1651,14 @@ function renderStmt() {
           <th style="${TH}right">TOTAL AMOUNT DUE</th>
         </tr></thead>
         <tbody>
-          ${loads.length ? loads.map(l => {
-            const em = l.empty_miles || 0, lm = l.miles || 0, tm = em + lm;
-            const rowAmt = tm * pay.rate;
+          ${loadRows.length ? loadRows.map(({l, isD2, eMi, lMi, rowAmt, route}) => {
+            const tm = eMi + lMi;
             return `<tr>
               <td style="${TD}white-space:nowrap">${fSlash(l.pu_date)}</td>
-              <td style="${TD}font-weight:700">${l.id}</td>
-              <td style="${TD}">${l.pu_city||''},${l.pu_st||''} ${l.pu_zip||''} - ${l.del_city||''},${l.del_st||''} ${l.del_zip||''}</td>
-              <td style="${TD}text-align:right">${em || ''}</td>
-              <td style="${TD}text-align:right">${lm || ''}</td>
+              <td style="${TD}font-weight:700">${l.id}${isD2?'<span class="badge bt" style="font-size:8px;margin-left:4px">D2</span>':l.split?'<span class="badge bt" style="font-size:8px;margin-left:4px">D1</span>':''}</td>
+              <td style="${TD}">${route}</td>
+              <td style="${TD}text-align:right">${eMi || ''}</td>
+              <td style="${TD}text-align:right">${lMi || ''}</td>
               <td style="${TD}text-align:right;font-weight:600">${tm || ''}</td>
               <td style="${TD}text-align:right;color:var(--green);font-weight:600">${f$(rowAmt)}</td>
             </tr>`;
@@ -1514,17 +1748,17 @@ function renderStmt() {
           <th style="${TH}right">AMOUNT</th>
         </tr></thead>
         <tbody>
-          ${loads.length ? loads.map(l => `<tr>
+          ${loadRows.length ? loadRows.map(({l, isD2, route}) => `<tr>
             <td style="${TD}white-space:nowrap">${fSlash(l.pu_date)}</td>
-            <td style="${TD}font-weight:700">${l.id}</td>
-            <td style="${TD}">${l.pu_city||''},${l.pu_st||''} - ${l.del_city||''},${l.del_st||''}</td>
+            <td style="${TD}font-weight:700">${l.id}${isD2?'<span class="badge bt" style="font-size:8px;margin-left:4px">D2</span>':''}</td>
+            <td style="${TD}">${route}</td>
             <td style="${TD}font-size:11px;color:var(--text2)">${(l.customer||'').slice(0,26)}</td>
-            <td style="${TD}text-align:right;color:var(--green);font-weight:600">${f$(l.amount)}</td>
+            <td style="${TD}text-align:right;color:var(--text2);font-size:11px">${l.stops&&l.stops.length>1?l.stops.length+' stops':'—'}</td>
           </tr>`).join('') : noLoads(5)}
         </tbody>
         <tfoot><tr style="background:var(--bg4);font-weight:800;border-top:2px solid var(--border2)">
           <td colspan="4" style="padding:8px 10px;text-align:right">LOADS THIS WEEK:</td>
-          <td style="padding:8px 10px;text-align:right;color:var(--text)">${loads.length}</td>
+          <td style="padding:8px 10px;text-align:right;color:var(--text)">${loadRows.length}</td>
         </tr></tfoot>
       </table>
 
