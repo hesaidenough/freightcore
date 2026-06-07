@@ -1040,6 +1040,96 @@ function saveLoad() {
 }
 
 // ── STATEMENTS ────────────────────────────────────────────────────────────────
+// ── STATEMENT CUSTOM LINES (persist deductions/advances per driver+week) ─────
+let stmtLines = JSON.parse(localStorage.getItem('cfs_stmtlines')||'{}');
+
+function stmtKey(drv, wk) { return drv + '|' + wk; }
+
+function getStmtLines(drv, wk) {
+  return stmtLines[stmtKey(drv, wk)] || [];
+}
+
+function saveStmtLines(drv, wk, lines) {
+  stmtLines[stmtKey(drv, wk)] = lines;
+  localStorage.setItem('cfs_stmtlines', JSON.stringify(stmtLines));
+}
+
+function addStmtLine(drv, wk, type) {
+  const lines = getStmtLines(drv, wk);
+  lines.push({ id: Date.now(), type, desc: '', amount: 0 });
+  saveStmtLines(drv, wk, lines);
+  renderStmt();
+}
+
+function removeStmtLine(drv, wk, id) {
+  const lines = getStmtLines(drv, wk).filter(l => l.id !== id);
+  saveStmtLines(drv, wk, lines);
+  renderStmt();
+}
+
+function updateStmtLine(drv, wk, id, field, val) {
+  const lines = getStmtLines(drv, wk);
+  const line  = lines.find(l => l.id === id);
+  if (!line) return;
+  line[field] = field === 'amount' ? parseFloat(val)||0 : val;
+  saveStmtLines(drv, wk, lines);
+  // Recalc total without full re-render
+  recalcStmtTotal();
+}
+
+function recalcStmtTotal() {
+  const drv = $('st-drv')?.value;
+  const wk  = $('st-wk')?.value;
+  if (!drv || !wk) return;
+  const lines = getStmtLines(drv, wk);
+  const extraAdv = lines.filter(l=>l.type==='advance').reduce((s,l)=>s+(l.amount||0),0);
+  const extraDed = lines.filter(l=>l.type==='deduction').reduce((s,l)=>s+(l.amount||0),0);
+  const el = $('stmt-total');
+  if (!el) return;
+  const base = parseFloat(el.dataset.base||0);
+  const tot  = base + extraAdv - extraDed;
+  el.textContent = f$(tot);
+  el.style.color = tot >= 0 ? 'var(--green)' : 'var(--red)';
+}
+
+// Build the custom lines HTML block (used in all 3 statement types)
+function buildStmtLinesHTML(drv, wk) {
+  const lines = getStmtLines(drv, wk);
+  const rows  = lines.map(l => `
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+      <span class="badge ${l.type==='advance'?'bg':'br'}" style="flex-shrink:0;font-size:9px">${l.type==='advance'?'+ ADD':'− DED'}</span>
+      <input value="${l.desc||''}" placeholder="Description…"
+        style="flex:1;padding:4px 8px;font-size:12px;background:var(--bg5);border:1px solid var(--border2);border-radius:5px;color:var(--text)"
+        oninput="updateStmtLine('${drv}','${wk}',${l.id},'desc',this.value)">
+      <input type="number" value="${l.amount||''}" placeholder="0.00" step="0.01"
+        style="width:90px;padding:4px 8px;font-size:12px;text-align:right;background:var(--bg5);border:1px solid var(--border2);border-radius:5px;color:var(--text)"
+        oninput="updateStmtLine('${drv}','${wk}',${l.id},'amount',this.value)">
+      <button onclick="removeStmtLine('${drv}','${wk}',${l.id})" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:16px;line-height:1;padding:0 4px">✕</button>
+    </div>`).join('');
+
+  const totAdv = lines.filter(l=>l.type==='advance').reduce((s,l)=>s+(l.amount||0),0);
+  const totDed = lines.filter(l=>l.type==='deduction').reduce((s,l)=>s+(l.amount||0),0);
+
+  return `
+    <div style="margin-top:10px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);margin-bottom:8px;text-decoration:underline">ADVANCES OR DEDUCTIONS:</div>
+      ${rows || '<div style="font-size:11px;color:var(--text3);padding:4px 0">— None —</div>'}
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button onclick="addStmtLine('${drv}','${wk}','advance')"
+          style="background:var(--green-bg);color:var(--green);border:1px solid var(--green);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">+ Add Advance</button>
+        <button onclick="addStmtLine('${drv}','${wk}','deduction')"
+          style="background:var(--red-bg);color:var(--red);border:1px solid var(--red);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">− Add Deduction</button>
+      </div>
+      ${totAdv||totDed ? `<div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:6px;border-top:1px solid var(--border);font-size:11px;color:var(--text2)">
+        <span>SUM:</span>
+        <span style="color:${totAdv>=totDed?'var(--green)':'var(--red)'}">
+          ${totAdv>0?'+'+f$(totAdv):''}${totDed>0?' −'+f$(totDed):''}
+          = ${f$(totAdv-totDed)}
+        </span>
+      </div>` : ''}
+    </div>`;
+}
+
 function shiftWeek(n) {
   const ws = $('st-wk'); if (!ws.value) return;
   const d = new Date(ws.value+'T00:00:00'); d.setDate(d.getDate() + n*7);
@@ -1192,9 +1282,11 @@ function renderStmt() {
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:2px solid var(--border2);font-size:15px;font-weight:800">
           <span>TOTAL AMOUNT DUE:</span>
-          <span style="color:${netDue>=0?'var(--green)':'var(--red)'}">${f$(netDue)}</span>
+          <span id="stmt-total" data-base="${netDue}" style="color:${netDue>=0?'var(--green)':'var(--red)'}">${f$(netDue)}</span>
         </div>
       </div>
+
+      ${buildStmtLinesHTML(drv, wkStart)}
 
       ${escrow ? `<div style="display:flex;justify-content:space-between;padding:10px 18px;font-size:12px;margin-top:4px">
         <span style="color:var(--text2)">ESCROW DUE</span>
@@ -1302,9 +1394,10 @@ function renderStmt() {
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:2px solid var(--border2);font-size:15px;font-weight:800">
           <span>TOTAL AMOUNT DUE:</span>
-          <span id="stmt-total" style="color:${totalDue>=0?'var(--green)':'var(--red)'}">${f$(totalDue)}</span>
+          <span id="stmt-total" data-base="${totalDue}" style="color:${totalDue>=0?'var(--green)':'var(--red)'}">${f$(totalDue)}</span>
         </div>
       </div>
+      ${buildStmtLinesHTML(drv, wkStart)}
       ${eqStrip}
     </div>`;
 
@@ -1378,9 +1471,10 @@ function renderStmt() {
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:2px solid var(--border2);font-size:15px;font-weight:800">
           <span>TOTAL AMOUNT DUE:</span>
-          <span id="stmt-total" style="color:var(--green)">${f$(pay.rate*5 - pay.occ)}</span>
+          <span id="stmt-total" data-base="${pay.rate*5 - pay.occ}" style="color:var(--green)">${f$(pay.rate*5 - pay.occ)}</span>
         </div>
       </div>
+      ${buildStmtLinesHTML(drv, wkStart)}
       ${eqStrip}
     </div>`;
   }
@@ -1388,11 +1482,24 @@ function renderStmt() {
 
 function recalcDaily() {
   const drv = $('st-drv').value; if (!drv) return;
+  const wk  = $('st-wk').value  || '';
   const p   = PAY[drv] || {rate:300, occ:35};
   const days= parseFloat($('s-days')?.value||0) || 0;
   const adv = parseFloat($('s-adv')?.value||0)  || 0;
   const ded = parseFloat($('s-ded')?.value||0)  || 0;
   const dp  = days * p.rate;
+  const el  = $('days-pay'); if (el) el.textContent = f$(dp);
+  const lines   = getStmtLines(drv, wk);
+  const extraAdv= lines.filter(l=>l.type==='advance').reduce((s,l)=>s+(l.amount||0),0);
+  const extraDed= lines.filter(l=>l.type==='deduction').reduce((s,l)=>s+(l.amount||0),0);
+  const tot = dp + adv - ded - (p.occ||0) + extraAdv - extraDed;
+  const te  = $('stmt-total');
+  if (te) {
+    te.textContent = f$(tot);
+    te.style.color = tot >= 0 ? 'var(--green)' : 'var(--red)';
+    te.dataset.base = dp - (p.occ||0);
+  }
+}
   const el  = $('days-pay'); if (el) el.textContent = f$(dp);
   const tot = dp + adv - ded - (p.occ||0);
   const te  = $('stmt-total');
