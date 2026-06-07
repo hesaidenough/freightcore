@@ -456,7 +456,8 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
           <th>Amount</th>
           <th>Status</th>
           <th>Special</th>
-          <th style="width:55px">✏</th>
+          <th style="width:40px">✏</th>
+          <th style="width:40px">📎</th>
         </tr></thead><tbody id="lb-tb"></tbody></table>
       </div></div>
     </div>
@@ -508,6 +509,7 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
             <th>Mileage</th>
             <th>Invoice #</th>
             <th style="width:60px">✏</th>
+            <th style="width:36px">📎</th>
           </tr></thead><tbody id="mnt-tb"></tbody></table>
         </div></div>
     </div>
@@ -561,6 +563,7 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
             <th onclick="sortFuel('total')" style="cursor:pointer">Total $↕</th>
             <th>Card Acct</th>
             <th style="width:40px">✏</th>
+            <th style="width:36px">📎</th>
           </tr></thead><tbody id="fuel-tb"></tbody></table>
         </div></div>
     </div>
@@ -1080,7 +1083,7 @@ function renderDash() {
   const rec = [...loads].sort((a,b) => (b.pu_date||'').localeCompare(a.pu_date||'')).slice(0,20);
   $('recent-tb').innerHTML = rec.map(l =>
     `<tr>
-      <td style="font-weight:700;color:var(--blue)">${l.id}</td>
+      <td style="font-weight:700;color:var(--blue);cursor:pointer" onclick="showLoadDetail('${l.id}')" title="View load details">${l.id}</td>
       <td>${dBadge(l.driver)}${l.split?`<span class="badge bt" style="font-size:8px;margin-left:2px">⇄</span>`:''}</td>
       <td style="max-width:170px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${l.pu_city||''}→${l.del_city||''}</td>
       <td>${fD(l.pu_date)}</td><td>${fD(l.del_date)}</td>
@@ -1159,8 +1162,8 @@ function renderLB() {
       <td style="font-size:11px">${l.tanker ? '<span class="badge bp">TNK</span>' : (l.special||'')}</td>
       <td>${isX
         ? `<button class="edit-btn" title="Edit" onclick="editLoad(${xIdx})">✏</button>`
-        : `<button class="edit-btn" title="Edit" onclick="editLoadDB(${dbIdx})">✏</button>`}
-      ${attachBadge('loads', l.id, 'Load '+l.id)}</td>
+        : `<button class="edit-btn" title="Edit" onclick="editLoadDB(${dbIdx})">✏</button>`}</td>
+      <td><span class="attach-badge" onclick="event.stopPropagation();openAttachPanel('loads','${l.id}','Load ${l.id}')" title="Files">📎</span></td>
     </tr>${detail}`;
   }).join('');
 }
@@ -2069,8 +2072,8 @@ function renderMaint() {
     <td>${r._src === 'x'
       ? `<button class="edit-btn" onclick="editRepair('x',${r._idx})">✏</button>
          <button class="del-btn"  onclick="delRepair(${r._idx})">✕</button>`
-      : `<button class="edit-btn" onclick="editRepair('db',${r._idx})">✏</button>`}
-      ${attachBadge('repairs', r.id||r._idx, 'Repair '+r.unit)}</td>
+      : `<button class="edit-btn" onclick="editRepair('db',${r._idx})">✏</button>`}</td>
+      <td><span class="attach-badge" onclick="openAttachPanel('repairs','${r.id||r._idx}','Repair '+r.unit)" title="Files">📎</span></td>
   </tr>`).join('') ||
   `<tr><td colspan="10" style="text-align:center;color:var(--text2);padding:20px">No entries. Click "+ Log Repair" to add.</td></tr>`;
 }
@@ -2151,7 +2154,7 @@ function renderEquip() {
         ${isX
           ? `<button class="edit-btn" onclick="editEquip(${xIdx})">✏</button><button class="del-btn" onclick="delEquip(${xIdx})">✕</button>`
           : `<button class="edit-btn" onclick="editEquipDB('${e.unit}','${e._type}')">✏</button>`}
-          ${attachBadge('equipment', e.unit, e._type+' '+e.unit)}
+          <span class="attach-badge" onclick="openAttachPanel('equipment','${e.unit}','${e._type} ${e.unit}')" title="Files">📎</span>
       </td>
     </tr>`;
   }).join('');
@@ -2440,8 +2443,8 @@ function renderFuel() {
       <td style="text-align:right;color:var(--text2)">${def?f$(def.amount):'—'}</td>
       <td style="text-align:right;color:var(--yellow);font-weight:700">${f$(f.total)}</td>
       <td style="font-size:10px;color:var(--text3)">${f.account||'—'}</td>
-      <td><button class="edit-btn" onclick="editFuel(${inXFuel},${allIdx})">✏</button>
-      ${attachBadge('fuel', f.date+'-'+f.unit, 'Fuel '+f.unit)}</td>
+      <td><button class="edit-btn" onclick="editFuel(${inXFuel},${allIdx})">✏</button></td>
+      <td><span class="attach-badge" onclick="openAttachPanel('fuel','${f.date}-${f.unit}','Fuel '+f.unit)" title="Files">📎</span></td>
     </tr>`;
   }).join('') || `<tr><td colspan="14" style="text-align:center;color:var(--text2);padding:24px">No fuel transactions. Upload a .DAT file using the button above.</td></tr>`;
 }
@@ -2823,6 +2826,23 @@ function logAudit(action, module, detail) {
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({action, table_name:module, detail})
   }).catch(()=>{});
+}
+
+function showLoadDetail(id) {
+  const l = allLoads().find(x => String(x.id) === String(id));
+  if (!l) return;
+  // Navigate to load board and open the detail row
+  nav('loadboard');
+  setTimeout(() => {
+    const row = document.getElementById(String(id));
+    if (row) {
+      row.scrollIntoView({behavior:'smooth', block:'center'});
+      row.style.background = 'var(--blue-bg)';
+      setTimeout(() => row.style.background = '', 1500);
+    }
+    // Open attach panel pre-loaded
+    openAttachPanel('loads', id, 'Load ' + id);
+  }, 150);
 }
 
 // ── ATTACHMENT SYSTEM ─────────────────────────────────────────────────────────
