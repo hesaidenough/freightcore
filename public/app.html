@@ -1500,11 +1500,6 @@ function recalcDaily() {
     te.dataset.base = dp - (p.occ||0);
   }
 }
-  const el  = $('days-pay'); if (el) el.textContent = f$(dp);
-  const tot = dp + adv - ded - (p.occ||0);
-  const te  = $('stmt-total');
-  if (te) { te.textContent = f$(tot); te.style.color = tot >= 0 ? 'var(--green)' : 'var(--red)'; }
-}
 function recalcTanker(occ) {
   const mi  = parseFloat($('tanker-mi')?.value||0) || 0;
   const tp  = mi * 0.04;
