@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>FreightCore — Fleet OPS</title><style>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>FreightCore</title><style>
 @import url('https://db.onlinewebfonts.com/c/77e2c172ad2201a53a7462c14893bb10?family=Conthrax');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 :root{
@@ -1709,9 +1709,8 @@ function renderDash(skipCountLoad) {
   const mtd = ytd.filter(l => parseInt((l.pu_date||'').slice(5,7)) === mo);
   const active = loads.filter(l => l.status==='In Transit'||l.status==='Confirmed');
 
-  const ytdRev = ytd.reduce((s,l)=>s+l.amount,0);
-  const mtdRev = mtd.reduce((s,l)=>s+l.amount,0);
-  const reps   = allRepairs().filter(r=>r.amount!=null);
+  const ytdRev     = ytd.reduce((s,l)=>s+l.amount,0);
+  const reps       = allRepairs().filter(r=>r.amount!=null);
   const totalMaint = reps.reduce((s,r)=>s+(r.amount||0),0);
   const fuelTotal  = allFuel().reduce((s,f)=>s+f.total,0);
   const netYTD     = ytdRev - totalMaint - fuelTotal;
@@ -1757,10 +1756,10 @@ function renderDash(skipCountLoad) {
     if (customRange) customRange.style.display = period==='custom'?'flex':'none';
 
     // Filter by period
-    const filterByPeriod = (loads) => {
+    const filterByPeriod = (items, dateField='pu_date') => {
       const now = new Date();
-      return loads.filter(l => {
-        const d = l.pu_date||l.del_date||'';
+      return items.filter(l => {
+        const d = l[dateField]||l.pu_date||l.del_date||l.date||'';
         if (period==='ytd')    return d.startsWith(String(yr));
         if (period==='month')  return d.startsWith(yr+'-'+String(mo).padStart(2,'0'));
         if (period==='week') { const w=new Date(); w.setDate(w.getDate()-7); return d>=w.toISOString().slice(0,10); }
@@ -1776,7 +1775,7 @@ function renderDash(skipCountLoad) {
 
     const pLoads  = filterByPeriod(del);
     const pRev    = pLoads.reduce((s,l)=>s+l.amount,0);
-    const pMaint  = filterByPeriod(allRepairs().filter(r=>r.amount!=null)).reduce((s,r)=>s+(r.amount||0),0);
+    const pMaint  = filterByPeriod(reps, 'date').reduce((s,r)=>s+(r.amount||0),0);
     const pFuel   = allFuel().reduce((s,f)=>s+f.total,0); // fuel doesn't have pu_date
     const pNet    = pRev - pMaint;
 
@@ -1844,8 +1843,8 @@ function renderDash(skipCountLoad) {
     }
 
     const dp = $('disp-period')?.value || 'ytd';
-    const filterDisp = (ls) => ls.filter(l => {
-      const d = l.pu_date||l.del_date||'';
+    const filterDisp = (ls, dateField) => ls.filter(l => {
+      const d = (dateField ? l[dateField] : null)||l.pu_date||l.del_date||l.date||'';
       if (dp==='today') return d === new Date().toISOString().slice(0,10);
       if (dp==='week')  { const w=new Date(); w.setDate(w.getDate()-7); return d>=w.toISOString().slice(0,10); }
       if (dp==='month') return d.startsWith(yr+'-'+String(mo).padStart(2,'0'));
@@ -1856,7 +1855,7 @@ function renderDash(skipCountLoad) {
     const pLoads  = filterDisp(loads);
     const pRev    = pDel.reduce((s,l)=>s+l.amount,0);
     const pFuel   = allFuel().reduce((s,f)=>s+f.total,0);
-    const pReps   = filterDisp(allRepairs().filter(r=>r.amount!=null)).length;
+    const pReps   = filterDisp(allRepairs().filter(r=>r.amount!=null), 'date').length;
     const drvWorked = new Set(pDel.map(l=>l.driver)).size;
 
     $('kpi-row').innerHTML = `
