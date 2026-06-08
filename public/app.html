@@ -705,21 +705,21 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
       </div>
       <div class="card"><div class="card-body tw" style="max-height:calc(100vh - 200px);overflow-y:auto">
         <table><thead><tr>
-          <th onclick="sortLB('id')">Load #↕</th>
-          <th onclick="sortLB('sched')">Sched↕</th>
-          <th onclick="sortLB('driver')">Driver↕</th>
-          <th onclick="sortLB('pu_date')">PU Date↕</th>
-          <th onclick="sortLB('pu_zip')">PU Zip↕</th>
-          <th>Pickup</th>
-          <th onclick="sortLB('del_date')">DEL Date↕</th>
-          <th onclick="sortLB('del_zip')">DEL Zip↕</th>
-          <th>Delivery</th>
-          <th>Customer</th>
-          <th>Broker Load#</th>
-          <th onclick="sortLB('truck')">Truck↕</th>
-          <th>Trailer</th>
-          <th>Amount</th>
-          <th>Status</th>
+          <th onclick="sortLB('id')" style="cursor:pointer">Load #↕</th>
+          <th onclick="sortLB('sched')" style="cursor:pointer">Sched↕</th>
+          <th onclick="sortLB('driver')" style="cursor:pointer">Driver↕</th>
+          <th onclick="sortLB('pu_date')" style="cursor:pointer">PU Date↕</th>
+          <th onclick="sortLB('pu_zip')" style="cursor:pointer">PU ZIP↕</th>
+          <th onclick="sortLB('pu_city')" style="cursor:pointer">Pickup↕</th>
+          <th onclick="sortLB('del_date')" style="cursor:pointer">DEL Date↕</th>
+          <th onclick="sortLB('del_zip')" style="cursor:pointer">DEL ZIP↕</th>
+          <th onclick="sortLB('del_city')" style="cursor:pointer">Delivery↕</th>
+          <th onclick="sortLB('customer')" style="cursor:pointer">Customer↕</th>
+          <th onclick="sortLB('broker_load')" style="cursor:pointer">Broker Load#↕</th>
+          <th onclick="sortLB('truck')" style="cursor:pointer">Truck↕</th>
+          <th onclick="sortLB('trailer')" style="cursor:pointer">Trailer↕</th>
+          <th onclick="sortLB('amount')" style="cursor:pointer">Amount↕</th>
+          <th onclick="sortLB('status')" style="cursor:pointer">Status↕</th>
           <th>Special</th>
           <th style="width:40px">✏</th>
           <th style="width:40px">📎</th>
@@ -764,16 +764,16 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
       <div class="card"><div class="card-hdr"><span class="card-title">🔧 Repair & Maintenance</span><span id="mnt-total" style="font-size:11px;color:var(--text2)"></span></div>
         <div class="card-body tw" style="max-height:calc(100vh - 225px);overflow-y:auto">
           <table><thead><tr>
-            <th onclick="sortMaint('date')">Date↕</th>
-            <th onclick="sortMaint('unit')">Unit↕</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th onclick="sortMaint('amount')">Amount↕</th>
-            <th>Vendor</th>
-            <th>Location</th>
-            <th>Payment</th>
-            <th>Mileage</th>
-            <th>Invoice #</th>
+            <th onclick="sortMaint('date')" style="cursor:pointer">Date↕</th>
+            <th onclick="sortMaint('unit')" style="cursor:pointer">Unit↕</th>
+            <th onclick="sortMaint('type')" style="cursor:pointer">Type↕</th>
+            <th onclick="sortMaint('desc')" style="cursor:pointer">Description↕</th>
+            <th onclick="sortMaint('amount')" style="cursor:pointer">Amount↕</th>
+            <th onclick="sortMaint('vendor')" style="cursor:pointer">Vendor↕</th>
+            <th onclick="sortMaint('city')" style="cursor:pointer">Location↕</th>
+            <th onclick="sortMaint('notes')" style="cursor:pointer">Payment↕</th>
+            <th onclick="sortMaint('miles')" style="cursor:pointer">Mileage↕</th>
+            <th onclick="sortMaint('inv')" style="cursor:pointer">Invoice #↕</th>
             <th style="width:60px">✏</th>
             <th style="width:36px">📎</th>
           </tr></thead><tbody id="mnt-tb"></tbody></table>
