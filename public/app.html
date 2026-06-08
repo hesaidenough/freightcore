@@ -2521,7 +2521,7 @@ function parseDATFile(event) {
   const uploadDate = new Date().toISOString().split('T')[0]; // today = upload date
   const reader = new FileReader();
 
-  reader.onload = e => {
+  reader.onload = async e => {
     const lines = e.target.result.split(/\r?\n/).filter(Boolean);
     const transactions = [];
     let cur = {products:[]};
