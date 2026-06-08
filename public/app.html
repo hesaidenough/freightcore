@@ -1776,14 +1776,14 @@ function renderDash(skipCountLoad) {
     const pLoads  = filterByPeriod(del);
     const pRev    = pLoads.reduce((s,l)=>s+l.amount,0);
     const pMaint  = filterByPeriod(reps, 'date').reduce((s,r)=>s+(r.amount||0),0);
-    const pFuel   = allFuel().reduce((s,f)=>s+f.total,0); // fuel doesn't have pu_date
+    const pFuel   = filterByPeriod(allFuel(),'date').reduce((s,f)=>s+f.total,0);
     const pNet    = pRev - pMaint;
 
     // Settlement stats
     const settled    = pLoads.filter(l=>l.settlement_status==='settled').length;
     const shortPaid  = pLoads.filter(l=>l.settlement_status==='short_paid');
     const disputed   = pLoads.filter(l=>l.settlement_status==='disputed').length;
-    const pendingDsp = pLoads.filter(l=>l.created_by!=='import'&&l.settlement_status==='pending_dispatch').length;
+    const pendingDsp = pLoads.filter(l=>!['import','import_new'].includes(l.created_by)&&l.settlement_status==='pending_dispatch').length;
     const shortAmt   = shortPaid.reduce((s,l)=>s+(l.short_paid_amount||0),0);
     const dedAmt     = pLoads.reduce((s,l)=>s+(l.rate_deduction||0),0);
 
@@ -1791,7 +1791,7 @@ function renderDash(skipCountLoad) {
       <div class="kpi green"><div class="kpi-label">Revenue</div><div class="kpi-value">${f$(pRev)}</div><div class="kpi-sub">${pLoads.length} loads</div></div>
       <div class="kpi blue"><div class="kpi-label">Active Loads</div><div class="kpi-value">${active.length}</div><div class="kpi-sub">${loads.filter(l=>l.status==='In Transit').length} in transit</div></div>
       <div class="kpi orange"><div class="kpi-label">Maintenance</div><div class="kpi-value">${f$(pMaint)}</div><div class="kpi-sub">${reps.length} entries</div></div>
-      <div class="kpi purple"><div class="kpi-label">Fuel Cost</div><div class="kpi-value">${f$(fuelTotal)}</div><div class="kpi-sub">${allFuel().length} txns</div></div>
+      <div class="kpi purple"><div class="kpi-label">Fuel Cost</div><div class="kpi-value">${f$(pFuel)}</div><div class="kpi-sub">${filterByPeriod(allFuel(),"date").length} txns</div></div>
       <div class="kpi yellow"><div class="kpi-label">Net Revenue</div><div class="kpi-value">${f$(pNet)}</div><div class="kpi-sub">After maint.</div></div>
       <div class="kpi ${shortPaid.length?'orange':'teal'}"><div class="kpi-label">Settled / Short</div><div class="kpi-value">${settled} / ${shortPaid.length}</div><div class="kpi-sub">${disputed} disputed · ${f$(shortAmt)} short</div></div>
     `;
@@ -1854,7 +1854,7 @@ function renderDash(skipCountLoad) {
     const pDel    = filterDisp(del);
     const pLoads  = filterDisp(loads);
     const pRev    = pDel.reduce((s,l)=>s+l.amount,0);
-    const pFuel   = allFuel().reduce((s,f)=>s+f.total,0);
+    const pFuel   = filterDisp(allFuel(),"date").reduce((s,f)=>s+f.total,0);
     const pReps   = filterDisp(allRepairs().filter(r=>r.amount!=null), 'date').length;
     const drvWorked = new Set(pDel.map(l=>l.driver)).size;
 
@@ -1892,7 +1892,7 @@ function renderDash(skipCountLoad) {
 
   // POD Alert (all roles)
   const missingPOD = del.filter(l => {
-    if (l.created_by === 'import' || l._src !== 'db') return false;
+    if (['import','import_new'].includes(l.created_by) || l._src !== 'db') return false;
     const info = attachCounts[String(l.id)];
     const tags = info ? (info.tags||{}) : {};
     return !(tags['POD'] > 0);
@@ -4310,7 +4310,7 @@ function loadDocBadges(loadId, status, createdBy) {
   const hasPOD = (tags['POD']||0) > 0;
   const hasRC  = (tags['Rate Con']||0) > 0;
   const isDel  = status === 'Delivered';
-  const isNew  = createdBy !== 'import';
+  const isNew  = !['import','import_new'].includes(createdBy);
   let b = '';
   if (isNew && !hasRC) b += `<span style="background:#1e3a5f;color:#60a5fa;border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700;margin-left:2px;cursor:pointer" onclick="event.stopPropagation();openAttachAndTag('loads','${loadId}','Load ${loadId}','Rate Con')">RC</span>`;
   if (isNew && isDel && !hasPOD) b += `<span style="background:#450a0a;color:#ef4444;border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700;margin-left:2px;cursor:pointer" onclick="event.stopPropagation();openAttachAndTag('loads','${loadId}','Load ${loadId}','POD')">POD!</span>`;
@@ -4322,7 +4322,7 @@ function repairDocBadge(repairId, createdBy) {
   const info = attachCounts[String(repairId)];
   const tags = info ? (info.tags||{}) : {};
   const hasInv = (tags['Invoice']||0) > 0;
-  const isNew  = createdBy !== 'import';
+  const isNew  = !['import','import_new'].includes(createdBy);
   if (hasInv) return `<span style="background:#052e16;color:#22c55e;border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700;margin-left:2px">✓INV</span>`;
   if (isNew)  return `<span style="background:#431407;color:#f97316;border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700;margin-left:2px;cursor:pointer" onclick="event.stopPropagation();openAttachAndTag('repairs','${repairId}','Repair','Invoice')">INV?</span>`;
   return '';
@@ -4336,7 +4336,7 @@ function openAttachAndTag(module, id, label, tag) {
 
 // ── SETTLEMENT SYSTEM ─────────────────────────────────────────────────────────
 function settlementBadge(l) {
-  if (l.created_by === 'import') return ''; // skip old data
+  if (['import','import_new'].includes(l.created_by)) return ''; // skip old data
   if (l.status !== 'Delivered' && l.status !== 'TONU') return '';
   const s = l.settlement_status || 'pending_dispatch';
   const badges = {
