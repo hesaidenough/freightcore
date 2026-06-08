@@ -940,6 +940,32 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
           </tr></thead><tbody id="audit-tb"></tbody></table>
         </div>
       </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="card-hdr">
+          <span class="card-title">🗑 Deleted Records</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="del-module-filter" onchange="renderDeleted()" style="font-size:12px;padding:4px 8px">
+              <option value="">All Modules</option>
+              <option value="loads">Loads</option>
+              <option value="repairs">Repairs</option>
+              <option value="trucks">Trucks</option>
+              <option value="trailers">Trailers</option>
+              <option value="drivers">Drivers</option>
+              <option value="brokers">Brokers</option>
+              <option value="fuel">Fuel</option>
+            </select>
+            <input type="date" id="del-from" onchange="renderDeleted()" style="font-size:11px;padding:3px 6px;background:var(--bg4);border:1px solid var(--border2);border-radius:5px;color:var(--text)">
+            <span style="color:var(--text3);font-size:11px">to</span>
+            <input type="date" id="del-to" onchange="renderDeleted()" style="font-size:11px;padding:3px 6px;background:var(--bg4);border:1px solid var(--border2);border-radius:5px;color:var(--text)">
+          </div>
+        </div>
+        <div class="card-body tw" style="max-height:400px;overflow-y:auto">
+          <table><thead><tr>
+            <th>Module</th><th>Record</th><th>Deleted By</th><th>Deleted At</th><th>Reason</th><th>Restore</th>
+          </tr></thead><tbody id="deleted-tb"></tbody></table>
+        </div>
+      </div>
     </div>
 
     <!-- MODAL: New/Edit User -->
@@ -1122,6 +1148,34 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
     <div class="mfoot">
       <button class="btn btn-ghost" onclick="closeM('mSettle')">Close</button>
       <button class="btn btn-primary" onclick="saveLumperDeduction()">💾 Save Adjustments</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="mo" id="mDelete">
+  <div class="modal" style="max-width:460px">
+    <div class="mhdr" style="border-bottom:2px solid var(--red)">
+      <span class="mtitle" style="color:var(--red)">🗑 Delete Entry</span>
+      <button class="mclose" onclick="closeM('mDelete')">✕</button>
+    </div>
+    <div class="mbody">
+      <div id="mDelete-info" style="background:var(--bg4);border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:13px;color:var(--text2)"></div>
+      <div style="padding:10px 12px;background:#450a0a;border:1px solid var(--red);border-radius:var(--radius);font-size:12px;color:#fca5a5;margin-bottom:14px">
+        ⚠️ This entry will be soft-deleted and removed from all views. Admins can restore it from the Deleted Records report.
+      </div>
+      <div class="fg">
+        <div class="fitem s4">
+          <label>Reason for deletion <span style="color:var(--red)">*</span></label>
+          <textarea id="mDelete-reason" rows="3" style="resize:vertical;padding:8px;background:var(--bg5);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:12px;width:100%" placeholder="Enter reason for deleting this entry..."></textarea>
+        </div>
+      </div>
+      <input type="hidden" id="mDelete-module" value="">
+      <input type="hidden" id="mDelete-id" value="">
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="closeM('mDelete')">Cancel</button>
+      <button class="btn" onclick="confirmDelete()" style="background:var(--red);color:#fff;border:none;padding:10px 20px;border-radius:var(--radius);font-weight:700;cursor:pointer">🗑 Confirm Delete</button>
     </div>
   </div>
 </div>
@@ -1948,7 +2002,7 @@ function renderLB(skipCountLoad) {
       <td style="color:var(--green);font-weight:600;white-space:nowrap">${f$(l.amount)}</td>
       <td>${sBadge(l.tonu ? 'TONU' : l.status)}</td>
       <td style="font-size:11px">${l.tanker ? '<span class="badge bp">TNK</span>' : (l.special||'')}</td>
-      <td><button class="edit-btn" title="Edit" onclick="event.stopPropagation();editLoad(${xIdx})">✏</button>${l.status==='Delivered'?`<button class="edit-btn" title="Settlement" onclick="event.stopPropagation();openSettle('${l._db_id}','${l.id}')" style="color:var(--yellow)">⚖</button>`:''}</td>
+      <td><button class="edit-btn" title="Edit" onclick="event.stopPropagation();editLoad(${xIdx})">✏</button>${l.status==='Delivered'?`<button class="edit-btn" title="Settlement" onclick="event.stopPropagation();openSettle('${l._db_id}','${l.id}')" style="color:var(--yellow)">⚖</button>`:''}<button class="del-btn" title="Delete" onclick="event.stopPropagation();openDeleteModal('loads','${l._db_id}','Load ${l.id} · ${l.driver} · ${l.customer||''}')">🗑</button></td>
       <td><span class="attach-badge" onclick="event.stopPropagation();openAttachPanel('loads','${l.id}','Load ${l.id}')" title="Files">📎</span></td>
     </tr>${detail}`;
   }).join('');
@@ -2852,7 +2906,10 @@ function renderDrivers() {
       </div>
       <div style="font-size:10px;color:var(--text3);margin-top:6px;display:flex;justify-content:space-between;align-items:center">
         <span>Click for full profile →</span>
-        ${attachBadge('drivers', d, 'Driver '+d)}
+        <div style="display:flex;gap:4px;align-items:center">
+          ${attachBadge('drivers', d, 'Driver '+d)}
+          ${dInfo?`<button class="del-btn" title="Delete driver" onclick="event.stopPropagation();openDeleteModal('drivers','${dInfo.id}','Driver: ${d}')" style="font-size:11px;padding:2px 6px">🗑</button>`:''}
+        </div>
       </div>
     </div>`;
   }).join('') || `<div style="color:var(--text2);padding:20px">No drivers match your search.</div>`;
@@ -2935,7 +2992,8 @@ function renderMaint(skipCountLoad) {
     <td>${r._src === 'x'
       ? `<button class="edit-btn" onclick="editRepair('x',${r._idx})">✏</button>
          <button class="del-btn"  onclick="delRepair(${r._idx})">✕</button>`
-      : `<button class="edit-btn" onclick="editRepair('db',${r._idx})">✏</button>`}</td>
+      : `<button class="edit-btn" onclick="editRepair('db',${r._idx})">✏</button>
+         <button class="del-btn" title="Delete" onclick="event.stopPropagation();openDeleteModal('repairs','${r.id}','Repair ${r.unit} · ${fD(r.date)} · ${(r.desc||'').slice(0,30)}')">🗑</button>`}</td>
       <td><span class="attach-badge" onclick="openAttachPanel('repairs','${r.id||r._idx}','Repair '+r.unit)" title="Files">📎</span></td>
   </tr>`).join('') ||
   `<tr><td colspan="10" style="text-align:center;color:var(--text2);padding:20px">No entries. Click "+ Log Repair" to add.</td></tr>`;
@@ -3052,7 +3110,8 @@ function renderEquip() {
       <td>
         ${isX
           ? `<button class="edit-btn" onclick="editEquip(${xIdx})">✏</button><button class="del-btn" onclick="delEquip(${xIdx})">✕</button>`
-          : `<button class="edit-btn" onclick="editEquipDB('${e.unit}','${e._type}')">✏</button>`}
+          : `<button class="edit-btn" onclick="editEquipDB('${e.unit}','${e._type}')">✏</button>
+             <button class="del-btn" title="Delete" onclick="event.stopPropagation();openDeleteModal('${e._type==='Truck'?'trucks':'trailers'}','${e.id}','${e._type} ${e.unit}')">🗑</button>`}
           <span class="attach-badge" onclick="openAttachPanel('equipment','${e.unit}','${e._type} ${e.unit}')" title="Files">📎</span>
       </td>
     </tr>`;
@@ -3383,7 +3442,8 @@ function renderFuel() {
       <td style="text-align:right;color:var(--text2)">${def?f$(def.amount):'—'}</td>
       <td style="text-align:right;color:var(--yellow);font-weight:700">${f$(f.total)}</td>
       <td style="font-size:10px;color:var(--text3)">${f.account||'—'}</td>
-      <td><button class="edit-btn" onclick="editFuel(${inXFuel},${allIdx})">✏</button></td>
+      <td><button class="edit-btn" onclick="editFuel(${inXFuel},${allIdx})">✏</button>
+          <button class="del-btn" title="Delete" onclick="event.stopPropagation();openDeleteModal('fuel','${f._db_id}','Fuel ${f.unit} · ${fD(f.date)}')">🗑</button></td>
       <td><span class="attach-badge" onclick="openAttachPanel('fuel','${f.date}-${f.unit}','Fuel '+f.unit)" title="Files">📎</span></td>
     </tr>`;
   }).join('') || `<tr><td colspan="14" style="text-align:center;color:var(--text2);padding:24px">No fuel transactions. Upload a .DAT file using the button above.</td></tr>`;
@@ -3496,7 +3556,8 @@ function renderBrokers() {
       <td>${b.credit ? creditBadge(b.credit) : '—'}</td>
       <td style="font-size:11px">${[b.city,b.state].filter(Boolean).join(', ')||'—'}</td>
       <td style="font-size:11px;color:var(--text2)">${b.notes||''}</td>
-      <td><button class="edit-btn" onclick="editBroker(${ri})">✏</button></td>
+      <td><button class="edit-btn" onclick="editBroker(${ri})">✏</button>
+          ${b._db_id?`<button class="del-btn" title="Delete" onclick="openDeleteModal('brokers','${b._db_id}','Broker: ${b.name}')">🗑</button>`:''}</td>
     </tr>`;
   }).join('') :
   `<tr><td colspan="9" style="text-align:center;color:var(--text2);padding:20px">No brokers yet. They auto-populate from load entries, or click "+ Add Broker".</td></tr>`;
@@ -3609,6 +3670,91 @@ function applyTheme() {
   if (isLight) document.body.classList.add('light');
   else document.body.classList.remove('light');
   updateThemeBtn(isLight);
+}
+
+// ── SOFT DELETE SYSTEM ────────────────────────────────────────────────────────
+let deleteCallback = null;
+
+function openDeleteModal(module, id, label) {
+  $('mDelete-module').value = module;
+  $('mDelete-id').value = id;
+  $('mDelete-reason').value = '';
+  $('mDelete-info').innerHTML = `
+    <div style="font-weight:700;margin-bottom:4px">🗑 ${label}</div>
+    <div style="font-size:11px;color:var(--text3)">Module: ${module} · ID: ${id}</div>`;
+  openM('mDelete');
+}
+
+async function confirmDelete() {
+  const module = $('mDelete-module').value;
+  const id     = $('mDelete-id').value;
+  const reason = $('mDelete-reason').value.trim();
+  if (!reason) { toast('Please enter a reason for deletion', true); return; }
+  try {
+    const r = await fetch(`/api/${module}/${id}/soft`, {
+      method: 'DELETE', credentials: 'include',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ reason })
+    });
+    const d = await r.json();
+    if (d.ok) {
+      closeM('mDelete');
+      toast('Entry deleted ✓');
+      await loadAllData();
+      // Re-render current page
+      const active = document.querySelector('.page.active')?.id?.replace('page-','');
+      if (active === 'loadboard') renderLB();
+      else if (active === 'maintenance') renderMaint();
+      else if (active === 'equipment') renderEquip();
+      else if (active === 'fuel') renderFuel();
+      else if (active === 'brokers') renderBrokers();
+      else if (active === 'drivers') renderDrivers();
+      renderDash(true);
+    } else toast('Delete failed: '+(d.error||''), true);
+  } catch(e) { toast('Error: '+e.message, true); }
+}
+
+async function renderDeleted() {
+  const module = $('del-module-filter')?.value || '';
+  const from   = $('del-from')?.value || '';
+  const to     = $('del-to')?.value || '';
+  const tb = $('deleted-tb');
+  if (!tb) return;
+  tb.innerHTML = '<tr><td colspan="6" style="padding:12px;color:var(--text3);text-align:center">Loading...</td></tr>';
+  try {
+    let url = '/api/deleted-records?';
+    if (module) url += 'module='+module+'&';
+    if (from)   url += 'from='+from+'&';
+    if (to)     url += 'to='+to;
+    const data = await fetch(url, {credentials:'include'}).then(r=>r.json());
+    const rows = [];
+    Object.entries(data).forEach(([mod, records]) => {
+      records.forEach(r => {
+        rows.push(`<tr>
+          <td><span class="badge bb" style="font-size:10px">${mod}</span></td>
+          <td style="font-weight:600">${r.label||r.id}</td>
+          <td style="font-size:11px">${r.deleted_by||'—'}</td>
+          <td style="font-size:11px;white-space:nowrap">${r.deleted_at?new Date(r.deleted_at).toLocaleDateString():''}</td>
+          <td style="font-size:11px;color:var(--text2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.delete_reason||'—'}</td>
+          <td><button onclick="restoreRecord('${mod}','${r.id}')" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px;color:var(--green)">↩ Restore</button></td>
+        </tr>`);
+      });
+    });
+    tb.innerHTML = rows.length ? rows.join('') :
+      '<tr><td colspan="6" style="padding:16px;color:var(--text3);text-align:center">No deleted records found</td></tr>';
+  } catch(e) {
+    tb.innerHTML = '<tr><td colspan="6" style="padding:12px;color:var(--red)">Error loading deleted records</td></tr>';
+  }
+}
+
+async function restoreRecord(module, id) {
+  if (!confirm('Restore this record?')) return;
+  try {
+    const r = await fetch(`/api/${module}/${id}/restore`, {method:'POST',credentials:'include'});
+    const d = await r.json();
+    if (d.ok) { toast('Record restored ✓'); await loadAllData(); renderDeleted(); renderDash(true); }
+    else toast('Restore failed: '+(d.error||''), true);
+  } catch(e) { toast('Error: '+e.message, true); }
 }
 
 // ── ACCOUNT & ADMIN ───────────────────────────────────────────────────────────
@@ -3763,6 +3909,7 @@ async function renderAdmin() {
     </tr>`).join('');
   } catch(e) { $('users-tb').innerHTML = '<tr><td colspan="6" style="color:var(--text2);padding:16px">Could not load users</td></tr>'; }
   renderAudit();
+  renderDeleted();
 }
 
 async function renderAudit() {
