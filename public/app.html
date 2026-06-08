@@ -269,6 +269,16 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
       </div>
 
       <input type="hidden" id="fl_edit_idx" value="">
+
+      <!-- FILE ATTACHMENTS -->
+      <div style="margin-top:14px;padding:12px 14px;background:var(--bg4);border-radius:var(--radius);border:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">📎 Attach Files (Rate Con, POD, Receipts…)</div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 12px;background:var(--bg5);border:1px dashed var(--border2);border-radius:var(--radius);font-size:12px;color:var(--text2)">
+          <span>📁 Click to select files</span>
+          <input type="file" id="fl_files" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.tif,.tiff,.doc,.docx,.xls,.xlsx,.txt,.dat" style="display:none" onchange="previewPendingFiles('fl_files_preview',this.files)">
+        </label>
+        <div id="fl_files_preview" style="margin-top:8px"></div>
+      </div>
     </div>
     <div class="mfoot">
       <button class="btn btn-ghost" onclick="closeM('mLoad')">Cancel</button>
@@ -316,6 +326,16 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
         <div class="fitem"><label>WO #</label><input id="fr_wo"></div>
       </div>
       <input type="hidden" id="fr_edit_idx" value="">
+
+      <!-- FILE ATTACHMENTS -->
+      <div style="margin-top:14px;padding:12px 14px;background:var(--bg4);border-radius:var(--radius);border:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">📎 Attach Files (Invoice, Inspection Report…)</div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 12px;background:var(--bg5);border:1px dashed var(--border2);border-radius:var(--radius);font-size:12px;color:var(--text2)">
+          <span>📁 Click to select files</span>
+          <input type="file" id="fr_files" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.tif,.tiff,.doc,.docx,.xls,.xlsx,.txt,.dat" style="display:none" onchange="previewPendingFiles('fr_files_preview',this.files)">
+        </label>
+        <div id="fr_files_preview" style="margin-top:8px"></div>
+      </div>
     </div>
     <div class="mfoot"><button class="btn btn-ghost" onclick="closeM('mRepair')">Cancel</button><button class="btn btn-primary" onclick="saveRepair()">💾 Save</button></div>
   </div>
@@ -370,6 +390,14 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
       </div>
       <input type="hidden" id="feq_edit_idx" value="">
       <input type="hidden" id="feq_edit_class" value="">
+      <div style="margin-top:14px;padding:12px 14px;background:var(--bg4);border-radius:var(--radius);border:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">📎 Attach Files (Registration, Inspection, Insurance…)</div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 12px;background:var(--bg5);border:1px dashed var(--border2);border-radius:var(--radius);font-size:12px;color:var(--text2)">
+          <span>📁 Click to select files</span>
+          <input type="file" id="feq_files" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.tif,.tiff,.doc,.docx,.xls,.xlsx,.txt" style="display:none" onchange="previewPendingFiles('feq_files_preview',this.files)">
+        </label>
+        <div id="feq_files_preview" style="margin-top:8px"></div>
+      </div>
     </div>
     <div class="mfoot"><button class="btn btn-ghost" onclick="closeM('mEquip')">Cancel</button><button class="btn btn-primary" onclick="saveEquip()">💾 Save</button></div>
   </div>
@@ -746,6 +774,38 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
 </div>
 <div id="attach-overlay" onclick="closeAttachPanel()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:299"></div>
 
+<!-- UNIVERSAL DETAIL MODAL -->
+<div class="mo" id="mDetail">
+  <div class="modal" style="max-width:780px">
+    <div class="mhdr">
+      <span class="mtitle" id="mDetail-title">Details</span>
+      <div style="display:flex;gap:8px">
+        <button id="mDetail-edit-btn" class="btn btn-ghost btn-sm" style="display:none">✏ Edit</button>
+        <button class="mclose" onclick="closeM('mDetail')">✕</button>
+      </div>
+    </div>
+    <div class="mbody">
+      <div id="mDetail-fields" style="margin-bottom:20px"></div>
+      <div style="border-top:1px solid var(--border);padding-top:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">📎 Attached Files</div>
+        <div class="attach-drop" onclick="document.getElementById('mDetail-file-input').click()"
+             ondragover="event.preventDefault();this.classList.add('dragover')"
+             ondragleave="this.classList.remove('dragover')"
+             ondrop="handleDetailDrop(event)" style="padding:14px">
+          <div style="font-size:13px;color:var(--text2)">📁 Drop files or click to upload</div>
+          <input type="file" id="mDetail-file-input" multiple
+            accept=".pdf,.jpg,.jpeg,.png,.gif,.tif,.tiff,.doc,.docx,.xls,.xlsx,.txt,.dat"
+            style="display:none" onchange="uploadDetailFiles(this.files)">
+        </div>
+        <div id="mDetail-files" style="margin-top:12px"></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="closeM('mDetail')">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 function doLogout(){fetch("/api/logout",{method:"POST",credentials:"include"}).then(function(){window.location.href="/";});}
 
@@ -756,31 +816,149 @@ const TRUCKS_DB=[{"unit":"133","make":"VOLVO","model":"VNL670","year":"2013","vi
 const TRAILERS_DB=[{"unit":"531302","make":"VANGUARD","year":"2016","vin":"5V8VA5328GM611004","insp_exp":"2026-06-21","plate_exp":"2027-02-28 00:00:00","plate":"SP571KAH - IN","start_date":"2016-12-16","ins_val":"10000","notes":""},{"unit":"531801","make":"WABASH","year":"2015","vin":"1JJV532D8FL898371","insp_exp":"2027-01-03","plate_exp":"2027-02-28 00:00:00","plate":"SP599PYA - IN","start_date":"2018-04-18","ins_val":"10000","notes":""},{"unit":"532401","make":"GREAT DANE","year":"2024","vin":"1GR1P0620RK538701","insp_exp":"2027-05-09","plate_exp":"2027-02-28 00:00:00","plate":"SP358RCP - IN","start_date":"2024-06-05","ins_val":"22000","notes":""},{"unit":"537377","make":"UTILITY","year":"2021","vin":"1UYVS2538M7373803","insp_exp":"2025-08-12","plate_exp":"-","plate":"780853ST - IL","start_date":"2025-03-18","ins_val":"38000","notes":"NOT IN USE AS OF 07/09/25"},{"unit":"5347","make":"GREAT DANE","year":"2023","vin":"1GR1P0623PJ515366","insp_exp":"2026-07-09","plate_exp":"2027-02-28 00:00:00","plate":"SP810TSM - IN","start_date":"2025-07-09","ins_val":"20000","notes":""},{"unit":"537597","make":"GREAT DANE","year":"2022","vin":"1GR1P0620NK424305","insp_exp":"2026-09-24","plate_exp":"-","plate":"862272ST","start_date":"2025-10-13","ins_val":"38000","notes":"NOT IN USE AS OF 11/30/25"},{"unit":"12602","make":"UTILITY","year":"2022","vin":"1UYVS2530N351019","insp_exp":"2026-11-22","plate_exp":"-","plate":"1038156ST - IL","start_date":"2025-12-01","ins_val":"22000","notes":""},{"unit":"536908","make":"WABASH","year":"2020","vin":"1JJV532D9LL158937","insp_exp":"2027-01-07","plate_exp":"-","plate":"697531ST - IL","start_date":"2026-01-08","ins_val":"38000","notes":"01/08 - 01/20/26"},{"unit":"12578","make":"UTILITY","year":"2021","vin":"1UYVS2533M7388225","insp_exp":"2027-03-04","plate_exp":"-","plate":"1053877ST - IL","start_date":"2026-04-01","ins_val":"NONE","notes":"STARTED 05/27/26"}];
 const FUEL_DB=[{"date":"2026-05-31","time":"14:38","report_date":"2026-06-01","upload_date":"2026-06-01","driver":"DIMITRI","driver_name":"DIMITRI IVANOV","unit":"2161","unit_type":"Truck","location":"GATEWAY TRAVEL PLAZA/CHEVRON","state":"TX","zip":"77662","lat":30.1124625,"lon":-94.0434565,"account":"4937231","products":[{"code":"ULSD","desc":"Diesel","qty":190.16,"ppu":4.549,"amount":865.04},{"code":"DEFD","desc":"DEF","qty":12.34,"ppu":4.494,"amount":55.50}],"total":920.54}];
 
-// ── Storage ──────────────────────────────────────────────────────────────────
-let xLoads   = JSON.parse(localStorage.getItem('cfs_xloads')  || '[]');
-let xRepairs = JSON.parse(localStorage.getItem('cfs_xrepairs')|| '[]');
-let xEquip   = JSON.parse(localStorage.getItem('cfs_xequip')  || '[]');
-let xFuel    = JSON.parse(localStorage.getItem('cfs_xfuel')   || '[]');
-let xBrokers = JSON.parse(localStorage.getItem('cfs_brokers') || '[]');
-let xCks     = JSON.parse(localStorage.getItem('cfs_checks')  || '{}');
+// ── Storage (API-backed) ──────────────────────────────────────────────────────
+let xLoads   = [];
+let xRepairs = [];
+let xEquip   = [];
+let xFuel    = [];
+let xBrokers = [];
+let xCks     = JSON.parse(localStorage.getItem('cfs_checks') || '{}');
+let _dbLoaded = { loads:false, repairs:false, fuel:false, equip:false, brokers:false };
 
-const allLoads   = () => [...LOADS_DB,   ...xLoads];
-const allFuel    = () => [...FUEL_DB,    ...xFuel];
-const allRepairs = () => {
-  const base  = REPAIRS_DB.map((r,i) => ({...r, _src:'db', _idx:i}));
-  const extra = xRepairs.map((r,i)   => ({...r, _src:'x',  _idx:i}));
-  return [...base, ...extra];
+// API helpers
+const api = {
+  get:  (url) => fetch(url, {credentials:'include'}).then(r => r.ok ? r.json() : []),
+  post: (url, data) => fetch(url, {method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)}).then(r => r.json()),
+  put:  (url, data) => fetch(url, {method:'PUT',  credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)}).then(r => r.json()),
+  del:  (url) => fetch(url, {method:'DELETE', credentials:'include'}).then(r => r.json()),
 };
-const allEquip = () => {
-  // xEquip overrides take precedence over DB entries for same unit+type
-  const overrideKey = e => `${e._type||e.type}-${e.unit}`;
-  const overrides   = new Set(xEquip.map(overrideKey));
-  const trucks   = TRUCKS_DB.map((t,i)   => ({...t, _type:'Truck',   _src:'db', _idx:i, status: t.status  || 'In Use'}))
-                             .filter(t => !overrides.has(overrideKey(t)));
-  const trailers = TRAILERS_DB.map((t,i) => ({...t, _type:'Trailer', _src:'db', _idx:i, status: t.status  || 'In Use'}))
-                               .filter(t => !overrides.has(overrideKey(t)));
-  return [...trucks, ...trailers, ...xEquip.map((e,i) => ({...e, _src:'x', _idx:i}))];
-};
+
+// Map DB load record to app format
+function mapLoad(l) {
+  return {
+    _db_id: l.id,
+    id: l.load_number,
+    sched: l.schedule_number || '',
+    driver: l.driver || '',
+    truck: l.truck || '',
+    trailer: l.trailer || '',
+    customer: l.customer || '',
+    broker_load: l.broker_load_number || '',
+    pu_date: l.pu_date ? String(l.pu_date).slice(0,10) : '',
+    pu_city: l.pu_city || '',
+    pu_st: l.pu_state || '',
+    pu_zip: l.pu_zip || '',
+    del_date: l.del_date ? String(l.del_date).slice(0,10) : '',
+    del_city: l.del_city || '',
+    del_st: l.del_state || '',
+    del_zip: l.del_zip || '',
+    route: l.route || '',
+    amount: parseFloat(l.amount) || 0,
+    empty_miles: parseInt(l.empty_miles) || 0,
+    miles: parseInt(l.loaded_miles) || 0,
+    status: l.status || 'Confirmed',
+    tonu: !!l.is_tonu,
+    tanker: !!l.is_tanker,
+    special: l.special || '',
+    notes: l.notes || '',
+    stop_bonus: parseFloat(l.stop_bonus) || 0,
+    _src: 'db',
+  };
+}
+
+function mapRepair(r, idx) {
+  return {
+    _db_id: r.id,
+    id: r.id,
+    date: r.repair_date ? String(r.repair_date).slice(0,10) : '',
+    unit: r.unit || '',
+    type: r.unit_type || 'Truck',
+    desc: r.description || '',
+    amount: parseFloat(r.amount) || 0,
+    vendor: r.vendor || '',
+    notes: r.payment_method || '',
+    inv: r.invoice_number || '',
+    wo: r.wo_number || '',
+    miles: r.mileage || '',
+    _src: 'db',
+    _idx: idx,
+  };
+}
+
+function mapFuel(f) {
+  return {
+    _db_id: f.id,
+    date: f.transaction_date ? String(f.transaction_date).slice(0,10) : '',
+    time: f.transaction_time || '',
+    report_date: f.report_date ? String(f.report_date).slice(0,10) : '',
+    upload_date: f.upload_date ? String(f.upload_date).slice(0,10) : '',
+    driver: f.driver || '',
+    driver_name: f.driver_name || '',
+    unit: f.unit || '',
+    location: f.location || '',
+    state: f.state || '',
+    zip: f.zip || '',
+    lat: parseFloat(f.lat) || 0,
+    lon: parseFloat(f.lon) || 0,
+    account: f.account_number || '',
+    products: [
+      ...(f.diesel_gallons ? [{code:'ULSD', desc:'Diesel', qty:parseFloat(f.diesel_gallons), ppu:parseFloat(f.diesel_ppu)||0, amount:parseFloat(f.diesel_amount)||0}] : []),
+      ...(f.def_gallons     ? [{code:'DEFD', desc:'DEF',   qty:parseFloat(f.def_gallons),    ppu:parseFloat(f.def_ppu)||0,    amount:parseFloat(f.def_amount)||0}]    : []),
+    ],
+    total: parseFloat(f.total_amount) || 0,
+    _src: 'db',
+  };
+}
+
+function mapBroker(b) {
+  return {
+    _db_id: b.id,
+    name: b.name || '',
+    addr: b.address || '',
+    city: b.city || '',
+    state: b.state || '',
+    zip: b.zip || '',
+    phone: b.phone || '',
+    email: b.email || '',
+    contact: b.contact_name || '',
+    mc: b.mc_number || '',
+    credit: b.credit_rating || '',
+    notes: b.notes || '',
+  };
+}
+
+// Fetch all data from API and populate arrays
+async function loadAllData() {
+  try {
+    const [loads, repairs, trucks, trailers, fuel, brokers] = await Promise.all([
+      api.get('/api/loads'),
+      api.get('/api/repairs'),
+      api.get('/api/trucks'),
+      api.get('/api/trailers'),
+      api.get('/api/fuel'),
+      api.get('/api/brokers'),
+    ]);
+    xLoads   = Array.isArray(loads)   ? loads.map(mapLoad)           : [];
+    xRepairs = Array.isArray(repairs) ? repairs.map(mapRepair)       : [];
+    xFuel    = Array.isArray(fuel)    ? fuel.map(mapFuel)            : [];
+    xBrokers = Array.isArray(brokers) ? brokers.map(mapBroker)       : [];
+    // Equipment — merge trucks and trailers
+    const truckList   = Array.isArray(trucks)   ? trucks.map((t,i)   => ({...t, _type:'Truck',   _src:'db', _idx:i, unit:t.unit, make:t.make, model:t.model, year:t.year, vin:t.vin, plate:t.plate, plate_st:t.plate_state, plate_exp:t.plate_exp?String(t.plate_exp).slice(0,10):'', insp_exp:t.insp_exp?String(t.insp_exp).slice(0,10):'', color:t.color, engine:t.engine, ins_val:t.ins_value, driver:t.assigned_driver, status:t.status||'In Use', notes:t.notes||''})) : [];
+    const trailerList = Array.isArray(trailers) ? trailers.map((t,i) => ({...t, _type:'Trailer', _src:'db', _idx:i, unit:t.unit, make:t.make, year:t.year, vin:t.vin, plate:t.plate, plate_st:t.plate_state, plate_exp:t.plate_exp?String(t.plate_exp).slice(0,10):'', insp_exp:t.insp_exp?String(t.insp_exp).slice(0,10):'', ins_val:t.ins_value, truck:t.assigned_truck, status:t.status||'In Use', notes:t.notes||''})) : [];
+    xEquip = [...truckList, ...trailerList];
+    _dbLoaded = {loads:true, repairs:true, fuel:true, equip:true, brokers:true};
+    return true;
+  } catch(e) {
+    console.error('loadAllData failed:', e);
+    return false;
+  }
+}
+
+const allLoads   = () => xLoads;
+const allFuel    = () => xFuel;
+const allRepairs = () => xRepairs.map((r,i) => ({...r, _src:r._src||'db', _idx:i}));
+const allEquip   = () => xEquip;
+
 
 // ── Pay config ────────────────────────────────────────────────────────────────
 // TADEUSZ = per-mile $0.55, floor $1,500/wk  (Hermesonica — matches real statement)
@@ -896,7 +1074,7 @@ function seedBrokers() {
       changed = true;
     }
   });
-  if (changed) localStorage.setItem('cfs_brokers', JSON.stringify(xBrokers));
+  if (changed) { /* brokers now loaded from DB, no localStorage needed */ }
 }
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
@@ -1143,7 +1321,7 @@ function renderLB() {
       </tr>` : '';
     const expandBtn = (hasSplit || hasStops) ? `<button onclick="toggleLBRow('${rowId}')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px" title="Expand">▶</button>` : '';
 
-    return `<tr style="${rs}" id="${rowId}">
+    return `<tr style="${rs};cursor:pointer" id="${rowId}" onclick="showDetail('loads','${l.id}')">
       <td style="font-weight:700;color:var(--blue)">${l.id}${expandBtn}</td>
       <td style="color:var(--text2);font-size:11px">${l.sched||'—'}</td>
       <td>${dBadge(l.driver)}${splitBadge}${stopBadge}</td>
@@ -1160,9 +1338,7 @@ function renderLB() {
       <td style="color:var(--green);font-weight:600;white-space:nowrap">${f$(l.amount)}</td>
       <td>${sBadge(l.tonu ? 'TONU' : l.status)}</td>
       <td style="font-size:11px">${l.tanker ? '<span class="badge bp">TNK</span>' : (l.special||'')}</td>
-      <td>${isX
-        ? `<button class="edit-btn" title="Edit" onclick="editLoad(${xIdx})">✏</button>`
-        : `<button class="edit-btn" title="Edit" onclick="editLoadDB(${dbIdx})">✏</button>`}</td>
+      <td><button class="edit-btn" title="Edit" onclick="event.stopPropagation();editLoad(${xIdx})">✏</button></td>
       <td><span class="attach-badge" onclick="event.stopPropagation();openAttachPanel('loads','${l.id}','Load ${l.id}')" title="Files">📎</span></td>
     </tr>${detail}`;
   }).join('');
@@ -1400,15 +1576,64 @@ function saveLoad() {
   };
 
   if (!l.driver) { toast('Select a driver', true); return; }
-  if (idx !== '') xLoads[parseInt(idx)] = l; else xLoads.push(l);
-  localStorage.setItem('cfs_xloads', JSON.stringify(xLoads));
-  if (l.customer && !xBrokers.find(b => b.name.toUpperCase() === l.customer.toUpperCase())) {
-    xBrokers.push({name:l.customer,addr:'',city:'',state:'',zip:'',phone:'',email:'',contact:'',mc:'',credit:'',notes:''});
-    localStorage.setItem('cfs_brokers', JSON.stringify(xBrokers));
+
+  // API save
+  const dbPayload = {
+    load_number: l.id,
+    schedule_number: l.sched,
+    broker_load_number: l.broker_load,
+    driver: l.driver,
+    truck: l.truck,
+    trailer: l.trailer,
+    customer: l.customer,
+    pu_date: l.pu_date||null,
+    pu_city: l.pu_city,
+    pu_state: l.pu_st,
+    pu_zip: l.pu_zip,
+    del_date: l.del_date||null,
+    del_city: l.del_city,
+    del_state: l.del_st,
+    del_zip: l.del_zip,
+    route: l.route,
+    amount: l.amount,
+    empty_miles: l.empty_miles,
+    loaded_miles: l.miles,
+    status: l.status,
+    is_tonu: l.tonu ? 1 : 0,
+    is_tanker: l.tanker ? 1 : 0,
+    special: l.special,
+    stop_bonus: l.stop_bonus||0,
+    notes: JSON.stringify({split:l.split||null, stops:l.stops||null}),
+  };
+
+  const existingLoad = xLoads.find(x => x.id === l.id);
+  const dbId = existingLoad?._db_id;
+
+  try {
+    let result;
+    if (dbId) {
+      result = await api.put('/api/loads/' + dbId, dbPayload);
+    } else {
+      result = await api.post('/api/loads', dbPayload);
+    }
+    if (result && (result.ok || result.id)) {
+      // Auto-add broker if new
+      if (l.customer && !xBrokers.find(b => b.name.toUpperCase() === l.customer.toUpperCase())) {
+        const br = await api.post('/api/brokers', {name:l.customer});
+        if (br.ok) xBrokers.push({_db_id:br.id, name:l.customer, addr:'',city:'',state:'',zip:'',phone:'',email:'',contact:'',mc:'',credit:'',notes:''});
+      }
+      closeM('mLoad');
+      toast(dbId ? 'Load updated ✓' : 'Load saved ✓');
+      const savedId = l.id;
+      await loadAllData();
+      if (savedId) uploadPendingFiles('loads', savedId, 'fl_files');
+      renderLB(); renderDash();
+    } else {
+      toast('Save failed: ' + (result?.error||'Unknown error'), true);
+    }
+  } catch(e) {
+    toast('Error saving load: ' + e.message, true);
   }
-  closeM('mLoad');
-  toast(idx !== '' ? 'Load updated ✓' : 'Load saved ✓');
-  renderLB(); renderDash();
 }
 
 // ── STATEMENTS ────────────────────────────────────────────────────────────────
@@ -2059,7 +2284,7 @@ function renderMaint() {
   const uc = {'133':'#3b82f6','1415':'#22c55e','2464':'#f97316','2161':'#a855f7','0623':'#f59e0b',
                '531302':'#3b82f6','531801':'#22c55e','532401':'#f97316','5347':'#f59e0b','12602':'#a855f7'};
 
-  $('mnt-tb').innerHTML = reps.map(r => `<tr>
+  $('mnt-tb').innerHTML = reps.map(r => `<tr style="cursor:pointer" onclick="showDetail('repairs','${r.id||r._idx}')">
     <td style="white-space:nowrap">${fD(r.date)}</td>
     <td><span style="color:${uc[r.unit]||'var(--text)'};font-weight:700">${r.unit}</span></td>
     <td><span class="badge ${r.type==='Truck'?'bb':'bo'}">${r.type}</span></td>
@@ -2081,11 +2306,10 @@ function renderMaint() {
 function editRepair(src, idx) {
   let r;
   if (src === 'db') {
-    // Copy DB record into xRepairs so it becomes editable
-    r = {...REPAIRS_DB[idx]};
+    // Copy DB record into xRepairs for editing
+    r = {...allRepairs()[idx]};
     xRepairs.push(r);
     idx = xRepairs.length - 1;
-    localStorage.setItem('cfs_xrepairs', JSON.stringify(xRepairs));
   } else {
     r = xRepairs[idx];
   }
@@ -2098,13 +2322,7 @@ function editRepair(src, idx) {
   $('fr_inv').value    = r.inv||'';    $('fr_wo').value     = r.wo||'';
   $('fr_edit_idx').value = idx; openM('mRepair');
 }
-function delRepair(idx) {
-  if (!confirm('Delete this repair entry?')) return;
-  xRepairs.splice(idx, 1);
-  localStorage.setItem('cfs_xrepairs', JSON.stringify(xRepairs));
-  renderMaint(); toast('Deleted');
-}
-function saveRepair() {
+async function saveRepair() {
   const idx = $('fr_edit_idx').value;
   const r = {
     date:   $('fr_date').value,   unit:   $('fr_unit').value.trim(),
@@ -2115,10 +2333,45 @@ function saveRepair() {
     inv:    $('fr_inv').value.trim(),    wo:    $('fr_wo').value.trim(),
   };
   if (!r.unit || !r.desc) { toast('Unit # and description required', true); return; }
-  if (idx !== '') xRepairs[parseInt(idx)] = r; else xRepairs.push(r);
-  localStorage.setItem('cfs_xrepairs', JSON.stringify(xRepairs));
-  $('fr_edit_idx').value = ''; $('mRepair-title').textContent = '🔧 Log Repair';
-  closeM('mRepair'); toast(idx !== '' ? 'Repair updated ✓' : 'Repair logged ✓'); renderMaint();
+
+  const payload = {
+    repair_date: r.date||null, unit: r.unit, unit_type: r.type,
+    description: r.desc, amount: r.amount, vendor: r.vendor,
+    payment_method: r.notes||'CC', mileage: r.miles,
+    invoice_number: r.inv, wo_number: r.wo,
+  };
+
+  try {
+    let result;
+    const existing = xRepairs.find((_,i) => String(i) === String(idx));
+    const dbId = existing?._db_id;
+    if (dbId) {
+      result = await api.put('/api/repairs/' + dbId, payload);
+    } else {
+      result = await api.post('/api/repairs', payload);
+    }
+    if (result && result.ok) {
+      $('fr_edit_idx').value = ''; $('mRepair-title').textContent = '🔧 Log Repair';
+      closeM('mRepair'); toast(dbId ? 'Repair updated ✓' : 'Repair logged ✓');
+      const repId = result.id || dbId;
+      await loadAllData();
+      if (repId) uploadPendingFiles('repairs', repId, 'fr_files');
+      renderMaint();
+    } else { toast('Save failed: '+(result?.error||''), true); }
+  } catch(e) { toast('Error: '+e.message, true); }
+}
+
+async function delRepair(idx) {
+  const r = xRepairs[idx]; if (!r) return;
+  if (!confirm('Delete this repair entry?')) return;
+  if (r._db_id) {
+    const result = await api.del('/api/repairs/' + r._db_id);
+    if (!result.ok) { toast('Delete failed', true); return; }
+  }
+  xRepairs.splice(idx, 1);
+  await loadAllData();
+  renderMaint();
+  toast('Repair deleted');
 }
 
 // ── EQUIPMENT ────────────────────────────────────────────────────────────────
@@ -2138,7 +2391,7 @@ function renderEquip() {
     const st   = e.status || 'In Use';
     const isX  = e._src === 'x';
     const xIdx = isX ? e._idx : -1;
-    return `<tr>
+    return `<tr style="cursor:pointer" onclick="showDetail('equipment','${e.unit}')">
       <td style="font-weight:700;color:${(e._type||e.type)==='Truck'?'var(--blue)':'var(--teal)'}">${e.unit}</td>
       <td><span class="badge ${(e._type||e.type)==='Truck'?'bb':'bt'}">${e._type||e.type||'—'}</span></td>
       <td>${statusBadge(st)}</td>
@@ -2198,17 +2451,17 @@ function editEquipDB(unit, type) {
   openM('mEquip');
 }
 function delEquip(idx) {
-  if (!confirm('Delete this unit?')) return;
-  xEquip.splice(idx, 1); localStorage.setItem('cfs_xequip', JSON.stringify(xEquip));
-  renderEquip(); toast('Deleted');
+  toast('Use the edit button to mark equipment as Out of Service', true);
 }
-function saveEquip() {
+
+async function saveEquip() {
   const idx = $('feq_edit_idx').value;
   const cls = $('feq_edit_class').value;
+  const eType = $('feq_type').value;
   const e = {
     unit:      $('feq_unit').value.trim(),
-    _type:     $('feq_type').value,
-    type:      $('feq_type').value,
+    _type:     eType,
+    type:      eType,
     status:    $('feq_status').value,
     make:      $('feq_make').value.trim(),
     model:     $('feq_model').value.trim(),
@@ -2223,24 +2476,43 @@ function saveEquip() {
     driver:    $('feq_driver').value,
     engine:    $('feq_engine').value,
     notes:     $('feq_notes').value,
-    _src: 'x',
   };
   if (!e.unit) { toast('Unit # required', true); return; }
 
-  if (cls === 'x' && idx !== '' && parseInt(idx) >= 0) {
-    // Editing existing xEquip entry
-    xEquip[parseInt(idx)] = e;
-  } else if (cls.startsWith('db-')) {
-    // Editing a DB entry — store as override, replacing any prior override for this unit
-    const key = `${e._type}-${e.unit}`;
-    const existIdx = xEquip.findIndex(x => `${x._type||x.type}-${x.unit}` === key);
-    if (existIdx >= 0) xEquip[existIdx] = e; else xEquip.push(e);
-  } else {
-    // New entry
-    xEquip.push(e);
-  }
-  localStorage.setItem('cfs_xequip', JSON.stringify(xEquip));
-  closeM('mEquip'); toast('Saved ✓'); renderEquip(); checkExpiryAlerts();
+  const isTruck = eType === 'Truck';
+  const endpoint = isTruck ? '/api/trucks' : '/api/trailers';
+
+  // Build DB payload
+  const payload = isTruck ? {
+    unit: e.unit, make: e.make, model: e.model, year: e.year, vin: e.vin,
+    plate: e.plate, plate_state: e.plate_st, plate_exp: e.plate_exp||null,
+    insp_exp: e.insp_exp||null, color: e.color, engine: e.engine,
+    ins_value: parseFloat(e.ins_val)||null, assigned_driver: e.driver,
+    status: e.status, notes: e.notes,
+  } : {
+    unit: e.unit, make: e.make, year: e.year, vin: e.vin,
+    plate: e.plate, plate_state: e.plate_st, plate_exp: e.plate_exp||null,
+    insp_exp: e.insp_exp||null, ins_value: parseFloat(e.ins_val)||null,
+    assigned_truck: e.driver, status: e.status, notes: e.notes,
+  };
+
+  try {
+    // Find existing DB record by unit
+    const existing = xEquip.find(x => x.unit === e.unit && (x._type||x.type) === eType);
+    const dbId = existing?.id;
+    let result;
+    if (dbId) {
+      result = await api.put(endpoint + '/' + dbId, payload);
+    } else {
+      result = await api.post(endpoint, payload);
+    }
+    if (result && result.ok) {
+      closeM('mEquip'); toast('Saved ✓');
+      await loadAllData();
+      if (e.unit) uploadPendingFiles('equipment', e.unit, 'feq_files');
+      renderEquip(); checkExpiryAlerts();
+    } else { toast('Save failed: '+(result?.error||''), true); }
+  } catch(err) { toast('Error: '+err.message, true); }
 }
 
 // ── FUEL ─────────────────────────────────────────────────────────────────────
@@ -2349,9 +2621,31 @@ function parseDATFile(event) {
       const existKeys = new Set(xFuel.map(f => f.date+'-'+f.unit+'-'+(f.products||[]).map(p=>p.code+p.amount).join(',')));
       const newTxns   = transactions.filter(t => !existKeys.has(t.date+'-'+t.unit+'-'+(t.products||[]).map(p=>p.code+p.amount).join(',')));
       if (!newTxns.length) { toast('All transactions already imported', true); return; }
-      xFuel = [...xFuel, ...newTxns];
-      localStorage.setItem('cfs_xfuel', JSON.stringify(xFuel));
-      toast('Imported '+newTxns.length+' transaction(s) | Report: '+reportDate+' | Uploaded: '+uploadDate);
+      // Save each transaction to DB
+      let saved = 0;
+      for (const t of newTxns) {
+        const diesel = (t.products||[]).find(p=>p.code==='ULSD');
+        const def    = (t.products||[]).find(p=>p.code==='DEFD');
+        try {
+          const r = await api.post('/api/fuel', {
+            transaction_date: t.date||null,
+            transaction_time: t.time||'',
+            report_date: t.report_date||null,
+            upload_date: t.upload_date||null,
+            driver: t.driver||'', driver_name: t.driver_name||'',
+            unit: t.unit||'', location: t.location||'',
+            state: t.state||'', zip: t.zip||'',
+            lat: t.lat||null, lon: t.lon||null,
+            account_number: t.account||'',
+            diesel_gallons: diesel?.qty||null, diesel_ppu: diesel?.ppu||null, diesel_amount: diesel?.amount||null,
+            def_gallons: def?.qty||null, def_ppu: def?.ppu||null, def_amount: def?.amount||null,
+            total_amount: t.total||0,
+          });
+          if (r.ok) saved++;
+        } catch(e) {}
+      }
+      await loadAllData();
+      toast('Imported '+saved+' transaction(s) | Report: '+reportDate+' | Uploaded: '+uploadDate);
       renderFuel(); renderDash();
     } else {
       toast('No valid transactions found in DAT file', true);
@@ -2429,7 +2723,7 @@ function renderFuel() {
     // Find index in allFuel() for editing
     const allIdx = allFuel().findIndex(x => x.date===f.date && x.unit===f.unit && x.total===f.total);
     const inXFuel = xFuel.findIndex(x => x.date===f.date && x.unit===f.unit && x.total===f.total);
-    return `<tr>
+    return `<tr style="cursor:pointer" onclick="showDetail('fuel','${f.date}-${f.unit}')">
       <td style="white-space:nowrap;font-size:11px">${fD(f.date)}${f.time?' '+f.time:''}</td>
       <td style="font-size:11px;color:var(--text3)">${fD(f.report_date)||'—'}</td>
       <td style="font-size:11px;color:var(--text3)">${fD(f.upload_date)||'—'}</td>
@@ -2450,16 +2744,7 @@ function renderFuel() {
 }
 
 function editFuel(xIdx, allIdx) {
-  // If it's a FUEL_DB entry (xIdx=-1), copy it into xFuel first
-  let f;
-  if (xIdx < 0) {
-    f = {...FUEL_DB[allIdx]};
-    xFuel.push(f);
-    xIdx = xFuel.length - 1;
-    localStorage.setItem('cfs_xfuel', JSON.stringify(xFuel));
-  } else {
-    f = xFuel[xIdx];
-  }
+  const f = allFuel()[allIdx >= 0 ? allIdx : xIdx];
   if (!f) return;
   const diesel = (f.products||[]).find(p=>p.code==='ULSD');
   const def    = (f.products||[]).find(p=>p.code==='DEFD');
@@ -2473,31 +2758,41 @@ function editFuel(xIdx, allIdx) {
   $('ff_def_gal').value    = def ? def.qty : '';
   $('ff_def_amt').value    = def ? def.amount : '';
   $('ff_account').value = f.account||'';
-  $('ff_edit_idx').value = xIdx;
+  $('ff_edit_idx').value = f._db_id || '';
   openM('mFuel');
 }
-function saveFuel() {
-  const idx = parseInt($('ff_edit_idx').value);
-  if (isNaN(idx) || idx < 0) return;
+
+async function saveFuel() {
+  const dbId = $('ff_edit_idx').value;
   const dGal = parseFloat($('ff_diesel_gal').value)||0;
   const dAmt = parseFloat($('ff_diesel_amt').value)||0;
   const fGal = parseFloat($('ff_def_gal').value)||0;
   const fAmt = parseFloat($('ff_def_amt').value)||0;
-  const products = [];
-  if (dGal||dAmt) products.push({code:'ULSD',desc:'Diesel',qty:dGal,amount:dAmt});
-  if (fGal||fAmt) products.push({code:'DEFD',desc:'DEF',qty:fGal,amount:fAmt});
-  xFuel[idx] = {...xFuel[idx],
-    date:     $('ff_date').value,
-    driver:   $('ff_driver').value,
-    unit:     $('ff_unit').value,
+
+  const payload = {
+    transaction_date: $('ff_date').value||null,
+    driver: $('ff_driver').value,
+    unit: $('ff_unit').value,
     location: $('ff_location').value,
-    state:    $('ff_state').value,
-    account:  $('ff_account').value,
-    products,
-    total:    dAmt + fAmt,
+    state: $('ff_state').value,
+    account_number: $('ff_account').value,
+    diesel_gallons: dGal||null, diesel_amount: dAmt||null,
+    def_gallons: fGal||null, def_amount: fAmt||null,
+    total_amount: dAmt + fAmt,
   };
-  localStorage.setItem('cfs_xfuel', JSON.stringify(xFuel));
-  closeM('mFuel'); toast('Fuel entry updated ✓'); renderFuel();
+
+  try {
+    let result;
+    if (dbId) {
+      result = await api.put('/api/fuel/' + dbId, payload);
+    } else {
+      result = await api.post('/api/fuel', payload);
+    }
+    if (result && result.ok) {
+      closeM('mFuel'); toast('Fuel entry updated ✓');
+      await loadAllData(); renderFuel();
+    } else { toast('Save failed: '+(result?.error||''), true); }
+  } catch(e) { toast('Error: '+e.message, true); }
 }
 
 // ── REVENUE ───────────────────────────────────────────────────────────────────
@@ -2577,7 +2872,7 @@ function editBroker(idx) {
   $('fb_notes').value   = b.notes||'';   $('fb_edit_idx').value = idx;
   openM('mBroker');
 }
-function saveBroker() {
+async function saveBroker() {
   const idx = $('fb_edit_idx').value;
   const b = {
     name:    $('fb_name').value.trim(),   addr:    $('fb_addr').value,
@@ -2588,9 +2883,27 @@ function saveBroker() {
     notes:   $('fb_notes').value,
   };
   if (!b.name) { toast('Company name required', true); return; }
-  if (idx !== '') xBrokers[parseInt(idx)] = b; else xBrokers.push(b);
-  localStorage.setItem('cfs_brokers', JSON.stringify(xBrokers));
-  closeM('mBroker'); toast('Broker saved ✓'); renderBrokers();
+
+  const payload = {
+    name: b.name, address: b.addr, city: b.city, state: b.state, zip: b.zip,
+    phone: b.phone, email: b.email, contact_name: b.contact,
+    mc_number: b.mc, credit_rating: b.credit, notes: b.notes,
+  };
+
+  try {
+    const existing = idx !== '' ? xBrokers[parseInt(idx)] : null;
+    const dbId = existing?._db_id;
+    let result;
+    if (dbId) {
+      result = await api.put('/api/brokers/' + dbId, payload);
+    } else {
+      result = await api.post('/api/brokers', payload);
+    }
+    if (result && result.ok) {
+      closeM('mBroker'); toast('Broker saved ✓');
+      await loadAllData(); renderBrokers();
+    } else { toast('Save failed: '+(result?.error||''), true); }
+  } catch(e) { toast('Error: '+e.message, true); }
 }
 
 // ── CHECKLISTS ────────────────────────────────────────────────────────────────
@@ -2845,7 +3158,162 @@ function showLoadDetail(id) {
   }, 150);
 }
 
-// ── ATTACHMENT SYSTEM ─────────────────────────────────────────────────────────
+// ── DETAIL MODAL ──────────────────────────────────────────────────────────────
+let detailState = { module: '', id: '' };
+
+function showDetail(module, id) {
+  detailState = { module, id };
+  const all = {
+    loads: allLoads, repairs: allRepairs, equipment: allEquip,
+    fuel: allFuel, drivers: () => DRIVER_LIST.map(d => ({id:d,...(PAY[d]||{})})),
+    brokers: () => xBrokers
+  };
+  const getter = all[module];
+  if (!getter) return;
+  const record = getter().find(r => String(r.id||r.unit||r.name||r) === String(id));
+  if (!record) return;
+
+  // Build field display
+  const skip = ['_src','_idx','_type','stops','splits','products'];
+  const labels = {
+    id:'Load #', load_number:'Load #', driver:'Driver', truck:'Truck', trailer:'Trailer',
+    customer:'Customer/Broker', pu_date:'PU Date', pu_city:'PU City', pu_state:'PU State',
+    pu_zip:'PU ZIP', del_date:'DEL Date', del_city:'DEL City', del_state:'DEL State',
+    del_zip:'DEL ZIP', amount:'Load Amount', empty_miles:'Empty Miles', miles:'Loaded Miles',
+    status:'Status', route:'Route', sched:'Schedule #', broker_load:'Broker Load #',
+    repair_date:'Date', unit:'Unit #', type:'Unit Type', desc:'Description',
+    vendor:'Vendor', notes:'Notes', inv:'Invoice #', wo:'WO #',
+    date:'Transaction Date', location:'Location', total:'Total Amount',
+    make:'Make', model:'Model', year:'Year', vin:'VIN', plate:'Plate',
+    plate_exp:'Plate Exp', insp_exp:'Insp Exp', color:'Color',
+    name:'Name', phone:'Phone', email:'Email', mc:'MC #', credit:'Credit',
+    company:'Company', rate:'Rate', pct:'OO %', floor:'Floor Pay',
+  };
+
+  const fields = Object.entries(record)
+    .filter(([k]) => !skip.includes(k) && !k.startsWith('_'))
+    .map(([k,v]) => {
+      if (v === null || v === undefined || v === '') return '';
+      const label = labels[k] || k.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+      const display = k.includes('amount')||k==='total'||k==='rate' ? f$(parseFloat(v)||0)
+                    : k.includes('date') ? fD(String(v).slice(0,10))
+                    : String(v);
+      return `<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <span style="color:var(--text3);min-width:120px;flex-shrink:0">${label}</span>
+        <span style="font-weight:500">${display}</span>
+      </div>`;
+    }).filter(Boolean).join('');
+
+  $('mDetail-title').textContent = module.charAt(0).toUpperCase()+module.slice(1)+' · '+id;
+  $('mDetail-fields').innerHTML = fields || '<p style="color:var(--text3)">No details available</p>';
+
+  // Edit button
+  const editBtn = $('mDetail-edit-btn');
+  editBtn.style.display = 'inline-flex';
+  const editFns = {
+    loads: () => { closeM('mDetail'); const idx = allLoads().findIndex(r=>String(r.id)===String(id)); if(idx>=0) editLoad(idx); },
+    repairs: () => { closeM('mDetail'); const r=allRepairs().find(r=>String(r.id||r._idx)===String(id)); if(r) editRepair(r._src,r._idx); },
+  };
+  editBtn.onclick = editFns[module] || null;
+  if (!editFns[module]) editBtn.style.display = 'none';
+
+  openM('mDetail');
+  loadDetailFiles();
+}
+
+async function loadDetailFiles() {
+  const { module, id } = detailState;
+  const el = $('mDetail-files');
+  el.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px">Loading files...</div>';
+  try {
+    const files = await fetch('/api/attachments/'+module+'/'+id, {credentials:'include'}).then(r=>r.json());
+    if (!files.length) { el.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px">No files attached yet</div>'; return; }
+    el.innerHTML = files.map(f => {
+      const isImg = f.mime_type && f.mime_type.startsWith('image/');
+      const isPdf = f.mime_type === 'application/pdf';
+      const sizeMB = (f.file_size/1024/1024).toFixed(1);
+      return `<div class="attach-item" style="flex-direction:column;align-items:stretch;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px">${getFileIcon(f.mime_type,f.original_name)}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.original_name}</div>
+            <div style="font-size:10px;color:var(--text3)">${sizeMB}MB · ${f.uploaded_by||'system'} · ${f.created_at?new Date(f.created_at).toLocaleDateString():''}</div>
+          </div>
+          <a href="/api/attachments/file/${f.filename}" target="_blank" class="btn btn-ghost btn-sm" style="font-size:11px">Open</a>
+          <button onclick="deleteAttachment(${f.id},'detail')" class="btn btn-sm" style="background:var(--red-bg);color:var(--red);border:none;font-size:11px;padding:4px 8px;border-radius:5px;cursor:pointer">✕</button>
+        </div>
+        ${isImg?`<img src="/api/attachments/file/${f.filename}" style="width:100%;max-height:200px;object-fit:contain;border-radius:6px;margin-top:8px;border:1px solid var(--border)">`: ''}
+        ${isPdf?`<iframe src="/api/attachments/file/${f.filename}" style="width:100%;height:280px;border:none;border-radius:6px;margin-top:8px"></iframe>`:''}
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML = '<div style="color:var(--red);font-size:12px;padding:8px">Error loading files</div>'; }
+}
+
+function handleDetailDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  uploadDetailFiles(e.dataTransfer.files);
+}
+
+async function uploadDetailFiles(files) {
+  const { module, id } = detailState;
+  for (const file of files) {
+    if (file.size > 10*1024*1024) { toast(file.name+' exceeds 10MB', true); continue; }
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const r = await fetch('/api/attachments/'+module+'/'+id, {method:'POST',credentials:'include',body:fd});
+      const d = await r.json();
+      if (d.ok) toast('✓ '+file.name);
+      else toast('Upload failed', true);
+    } catch(e) { toast('Upload error', true); }
+  }
+  $('mDetail-file-input').value = '';
+  loadDetailFiles();
+}
+
+// Override deleteAttachment to reload correct panel
+async function deleteAttachment(id, source) {
+  if (!confirm('Delete this file?')) return;
+  const r = await fetch('/api/attachments/'+id, {method:'DELETE',credentials:'include'});
+  const d = await r.json();
+  if (d.ok) { toast('File deleted'); if(source==='detail') loadDetailFiles(); else loadAttachments(); }
+  else toast('Delete failed', true);
+}
+
+// Pending file preview (before save)
+const pendingFiles = {};
+function previewPendingFiles(previewId, files) {
+  pendingFiles[previewId] = files;
+  const el = $(previewId); if (!el) return;
+  el.innerHTML = Array.from(files).map((f,i) =>
+    `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--bg5);border-radius:5px;margin-bottom:4px;font-size:11px">
+      <span>${getFileIcon(f.type,f.name)}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
+      <span style="color:var(--text3)">${(f.size/1024).toFixed(0)}KB</span>
+    </div>`
+  ).join('');
+}
+
+async function uploadPendingFiles(module, id, inputId) {
+  const input = $(inputId);
+  if (!input || !input.files || !input.files.length) return;
+  for (const file of input.files) {
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      await fetch('/api/attachments/'+module+'/'+id, {method:'POST',credentials:'include',body:fd});
+    } catch(e) {}
+  }
+  input.value = '';
+  const previewId = inputId.replace('_files','_files_preview').replace('input','');
+  // clear preview ids
+  ['fl_files_preview','fr_files_preview','feq_files_preview'].forEach(pid => {
+    const el = $(pid); if (el) el.innerHTML = '';
+  });
+}
+
+// ── DETAIL MODAL ──────────────────────────────────────────────────────────────
 let attachState = { module: '', id: '', tag: '' };
 
 function openAttachPanel(module, id, label) {
@@ -2982,22 +3450,31 @@ function attachBadge(module, id, label) {
 }
 
 // ── BOOT ──────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   applyTheme(); // apply saved theme first — no flash
   checkW();
   loadCurrentUser();
   initDropdowns();
+
+  // Show loading state
+  const kpiEl = $('kpi-row');
+  if (kpiEl) kpiEl.innerHTML = '<div style="color:var(--text3);padding:20px;grid-column:1/-1;text-align:center">Loading data…</div>';
+
+  // Load all data from DB first
+  await loadAllData();
+
+  // Now render everything
   renderDash();
   renderLB();
   renderEquip();
   renderRevenue();
   renderCklists();
   renderFuel();
+
   // Close modals on overlay click
   document.querySelectorAll('.mo').forEach(o =>
     o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); })
   );
-  // Plate/inspection expiry notifications — check BOTH dates per unit
   checkExpiryAlerts();
 });
 
