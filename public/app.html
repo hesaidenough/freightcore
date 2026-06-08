@@ -684,6 +684,7 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
     </div>
 
     <div class="page active" id="page-dashboard">
+      <div id="pod-alert-strip" style="display:none;background:#450a0a;border:1px solid #ef4444;border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"></div>
       <div id="kpi-row" class="kpi-grid"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div class="card"><div class="card-hdr"><span class="card-title">📈 Revenue by Driver</span></div><div class="card-body"><div class="bchart" id="rev-chart"></div></div></div>
@@ -985,6 +986,7 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
   </div>
   <div class="attach-body">
     <!-- Upload area -->
+    <div id="attach-quick-slots" style="margin-bottom:12px"></div>
     <div class="attach-drop" id="attach-drop" onclick="document.getElementById('attach-file-input').click()"
          ondragover="event.preventDefault();this.classList.add('dragover')"
          ondragleave="this.classList.remove('dragover')"
@@ -995,16 +997,6 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
       <input type="file" id="attach-file-input" multiple
         accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.tif,.tiff,.doc,.docx,.xls,.xlsx,.txt,.dat"
         onchange="uploadAttachments(this.files)">
-    </div>
-    <!-- File type quick labels -->
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
-      <span style="font-size:11px;color:var(--text3)">Tag as:</span>
-      <button onclick="setAttachTag('Rate Con')" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px">Rate Con</button>
-      <button onclick="setAttachTag('POD')" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px">POD</button>
-      <button onclick="setAttachTag('Lumper')" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px">Lumper</button>
-      <button onclick="setAttachTag('Invoice')" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px">Invoice</button>
-      <button onclick="setAttachTag('Inspection')" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px">Inspection</button>
-      <button onclick="setAttachTag('Registration')" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 8px">Registration</button>
     </div>
     <div id="attach-tag-display" style="display:none;margin-bottom:10px;font-size:11px;color:var(--blue)">Tag: <span id="attach-tag-val"></span> <button onclick="clearAttachTag()" style="background:none;border:none;cursor:pointer;color:var(--text3)">✕</button></div>
     <!-- File list -->
@@ -1544,9 +1536,12 @@ document.addEventListener('click', e => {
 });
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
-function renderDash() {
+function renderDash(skipCountLoad) {
   const loads    = allLoads();
   const del      = loads.filter(l => l.status === 'Delivered');
+  if (!skipCountLoad && del.length) {
+    loadAttachCounts('loads', del.map(l=>String(l.id))).then(() => renderDash(true));
+  }
   const active   = loads.filter(l => l.status === 'In Transit' || l.status === 'Confirmed');
   const totalRev = del.reduce((s,l) => s + l.amount, 0);
   const yr       = new Date().getFullYear();
@@ -1572,7 +1567,30 @@ function renderDash() {
     <div class="kpi ${netYTD>=0?'yellow':'red'}"><div class="kpi-label">Net YTD</div><div class="kpi-value">${f$(netYTD)}</div><div class="kpi-sub">After fuel & maint.</div></div>
   `;
 
-  // Revenue by driver chart
+  // POD Alert — delivered loads missing POD
+  const missingPOD = del.filter(l => {
+    const info = attachCounts[String(l.id)];
+    const tags = info ? (info.tags||{}) : {};
+    return !(tags['POD'] > 0);
+  });
+  const podAlertEl = $('pod-alert-strip');
+  if (podAlertEl) {
+    if (missingPOD.length) {
+      podAlertEl.style.display = 'flex';
+      podAlertEl.innerHTML = `
+        <span style="font-size:18px">🚨</span>
+        <div style="flex:1">
+          <strong>${missingPOD.length} delivered load${missingPOD.length>1?'s':''} missing POD</strong>
+          <span style="color:var(--text2);font-size:11px;margin-left:8px">Brokers are waiting — upload PODs ASAP</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${missingPOD.slice(0,5).map(l => `<span onclick="nav('loadboard');setTimeout(()=>openAttachAndTag('loads','${l.id}','Load ${l.id}','POD'),200)" style="background:rgba(239,68,68,.2);border:1px solid #ef4444;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;cursor:pointer;color:#ef4444">${l.id}</span>`).join('')}
+          ${missingPOD.length > 5 ? `<span style="font-size:11px;color:var(--text3)">+${missingPOD.length-5} more</span>` : ''}
+        </div>`;
+    } else {
+      podAlertEl.style.display = 'none';
+    }
+  }
   const cols = ['#3b82f6','#22c55e','#f97316','#a855f7','#f59e0b','#14b8a6','#ec4899','#8b5cf6','#ef4444','#06b6d4'];
   const rbd  = {};
   DRIVER_LIST.forEach(d => { rbd[d] = ytd.filter(l => l.driver === d || (l.split && l.split.driver2 === d)).reduce((s,l) => s + l.amount, 0); });
@@ -1612,7 +1630,7 @@ function renderDash() {
 // ── LOAD BOARD ────────────────────────────────────────────────────────────────
 function sortLB(col) { if (lbSort.col===col) lbSort.dir*=-1; else {lbSort.col=col; lbSort.dir=1;} renderLB(); }
 
-function renderLB() {
+function renderLB(skipCountLoad) {
   const q = ($('lb-q').value||'').toLowerCase();
   const drv   = $('lb-drv').value;
   const st    = $('lb-st').value;
@@ -1621,6 +1639,10 @@ function renderLB() {
   const truck = $('lb-truck').value;
 
   let ls = allLoads();
+  // Load attach counts once then re-render with badges
+  if (!skipCountLoad && ls.length) {
+    loadAttachCounts('loads', ls.map(l=>String(l.id))).then(() => renderLB(true));
+  }
   if (q)     ls = ls.filter(l => [l.id,l.driver,l.route,l.customer,l.pu_city,l.del_city,l.pu_zip,l.del_zip,l.pu_st,l.del_st,l.sched,l.broker_load,l.truck,l.trailer,l.status,l.special,l.notes,String(l.amount||'')].join(' ').toLowerCase().includes(q));
   if (drv)   ls = ls.filter(l => l.driver === drv);
   if (st)    ls = ls.filter(l => l.status === st || (l.tonu && st === 'TONU'));
@@ -1659,7 +1681,7 @@ function renderLB() {
     const expandBtn = (hasSplit || hasStops) ? `<button onclick="toggleLBRow('${rowId}')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px" title="Expand">▶</button>` : '';
 
     return `<tr style="${rs};cursor:pointer" id="${rowId}" onclick="showDetail('loads','${l.id}')">
-      <td style="font-weight:700;color:var(--blue)">${l.id}${expandBtn}</td>
+      <td style="font-weight:700;color:var(--blue)">${l.id}${expandBtn}${loadDocBadges(l.id, l.status)}</td>
       <td style="color:var(--text2);font-size:11px">${l.sched||'—'}</td>
       <td>${dBadge(l.driver)}${splitBadge}${stopBadge}</td>
       <td style="white-space:nowrap">${fD(l.pu_date)}</td>
@@ -2629,11 +2651,14 @@ function showDrvDetail(drv) {
 // ── MAINTENANCE ───────────────────────────────────────────────────────────────
 function sortMaint(col) { if (maintSort.col===col) maintSort.dir*=-1; else {maintSort.col=col; maintSort.dir=1;} renderMaint(); }
 
-function renderMaint() {
+function renderMaint(skipCountLoad) {
   const q    = ($('mnt-q').value||'').toLowerCase();
   const unit = $('mnt-unit').value;
   const type = $('mnt-type').value;
   let reps   = allRepairs();
+  if (!skipCountLoad && reps.length) {
+    loadAttachCounts('repairs', reps.map(r=>String(r.id||r._idx))).then(() => renderMaint(true));
+  }
   if (q)    reps = reps.filter(r => [r.unit,r.desc,r.vendor,r.notes,r.inv,r.wo,r.date,r.miles,r.notes,r.type,String(r.amount||'')].join(' ').toLowerCase().includes(q));
   if (unit) reps = reps.filter(r => r.unit === unit);
   if (type) reps = reps.filter(r => r.type === type);
@@ -2647,7 +2672,7 @@ function renderMaint() {
 
   $('mnt-tb').innerHTML = reps.map(r => `<tr style="cursor:pointer" onclick="showDetail('repairs','${r.id||r._idx}')">
     <td style="white-space:nowrap">${fD(r.date)}</td>
-    <td><span style="color:${uc[r.unit]||'var(--text)'};font-weight:700">${r.unit}</span></td>
+    <td><span style="color:${uc[r.unit]||'var(--text)'};font-weight:700">${r.unit}</span>${repairDocBadge(r.id||r._idx)}</td>
     <td><span class="badge ${r.type==='Truck'?'bb':'bo'}">${r.type}</span></td>
     <td style="max-width:260px">${r.desc||''}</td>
     <td style="color:var(--yellow);font-weight:600;white-space:nowrap">${r.amount != null ? f$(r.amount) : '—'}</td>
@@ -3683,17 +3708,66 @@ async function uploadPendingFiles(module, id, inputId) {
   });
 }
 
-// ── DETAIL MODAL ──────────────────────────────────────────────────────────────
+// ── ATTACHMENT SYSTEM ─────────────────────────────────────────────────────────
 let attachState = { module: '', id: '', tag: '' };
+
+const MODULE_SLOTS = {
+  loads: [
+    { tag: 'Rate Con', label: '📋 Rate Con', color: 'var(--blue)', required: true },
+    { tag: 'POD', label: '✅ POD', color: 'var(--green)', required: true },
+    { tag: 'Lumper', label: '🧾 Lumper Receipt', color: 'var(--orange)', required: false },
+    { tag: 'Other', label: '📎 Other', color: 'var(--text2)', required: false },
+  ],
+  repairs: [
+    { tag: 'Invoice', label: '🧾 Invoice/Receipt', color: 'var(--yellow)', required: true },
+    { tag: 'Photo', label: '📷 Photo', color: 'var(--purple)', required: false },
+    { tag: 'Estimate', label: '📋 Estimate', color: 'var(--blue)', required: false },
+    { tag: 'Other', label: '📎 Other', color: 'var(--text2)', required: false },
+  ],
+  equipment: [
+    { tag: 'Registration', label: '📝 Registration', color: 'var(--blue)', required: true },
+    { tag: 'Inspection', label: '🔍 Annual Inspection', color: 'var(--green)', required: true },
+    { tag: 'Insurance', label: '🛡 Insurance', color: 'var(--yellow)', required: false },
+    { tag: 'Title', label: '📜 Title', color: 'var(--purple)', required: false },
+    { tag: 'Other', label: '📎 Other', color: 'var(--text2)', required: false },
+  ],
+  drivers: [
+    { tag: 'CDL', label: '🪪 CDL', color: 'var(--blue)', required: true },
+    { tag: 'Medical', label: '⚕️ Medical Card', color: 'var(--green)', required: true },
+    { tag: 'MVR', label: '🚗 MVR', color: 'var(--yellow)', required: false },
+    { tag: 'Contract', label: '📝 Contract', color: 'var(--purple)', required: false },
+    { tag: 'Other', label: '📎 Other', color: 'var(--text2)', required: false },
+  ],
+  fuel: [
+    { tag: 'DAT File', label: '⛽ DAT File', color: 'var(--blue)', required: false },
+    { tag: 'Receipt', label: '🧾 Receipt', color: 'var(--yellow)', required: false },
+    { tag: 'Other', label: '📎 Other', color: 'var(--text2)', required: false },
+  ],
+};
 
 function openAttachPanel(module, id, label) {
   attachState = { module, id, tag: '' };
   $('attach-panel-title').textContent = '📎 ' + label;
   $('attach-panel-sub').textContent = module + ' · ' + id;
   clearAttachTag();
+  renderQuickSlots(module);
   loadAttachments();
   $('attach-panel').classList.add('open');
   $('attach-overlay').style.display = 'block';
+}
+
+function renderQuickSlots(module) {
+  const slots = MODULE_SLOTS[module] || [];
+  const el = $('attach-quick-slots'); if (!el) return;
+  if (!slots.length) { el.innerHTML=''; return; }
+  el.innerHTML = `<div style="margin-bottom:10px">
+    <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.6px">Upload as:</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      ${slots.map(s => `<button onclick="setAttachTag('${s.tag}')"
+        style="background:${attachState.tag===s.tag?s.color:'var(--bg5)'};color:${attachState.tag===s.tag?'#fff':s.color};border:1px solid ${s.color};border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">
+        ${s.label}${s.required?'<span style="color:var(--red);margin-left:2px">*</span>':''}
+      </button>`).join('')}
+    </div></div>`;
 }
 
 function closeAttachPanel() {
@@ -3703,13 +3777,13 @@ function closeAttachPanel() {
 
 function setAttachTag(tag) {
   attachState.tag = tag;
-  $('attach-tag-val').textContent = tag;
-  $('attach-tag-display').style.display = 'block';
+  const td = $('attach-tag-display'); if (td) { $('attach-tag-val').textContent = tag; td.style.display = 'block'; }
+  renderQuickSlots(attachState.module);
 }
 
 function clearAttachTag() {
   attachState.tag = '';
-  $('attach-tag-display').style.display = 'none';
+  const td = $('attach-tag-display'); if (td) td.style.display = 'none';
 }
 
 function handleAttachDrop(e) {
@@ -3722,21 +3796,24 @@ async function uploadAttachments(files) {
   if (!files || !files.length) return;
   const { module, id, tag } = attachState;
   for (const file of files) {
-    if (file.size > 10 * 1024 * 1024) { toast(file.name + ' exceeds 10MB limit', true); continue; }
+    if (file.size > 10*1024*1024) { toast(file.name+' exceeds 10MB', true); continue; }
     const fd = new FormData();
     fd.append('file', file);
     if (tag) fd.append('tag', tag);
     try {
-      const r = await fetch('/api/attachments/' + module + '/' + id, {
-        method: 'POST', credentials: 'include', body: fd
-      });
+      const r = await fetch('/api/attachments/'+module+'/'+id, {method:'POST',credentials:'include',body:fd});
       const d = await r.json();
-      if (d.ok) { toast('✓ ' + file.name + ' uploaded'); }
-      else toast('Upload failed: ' + (d.error||''), true);
-    } catch(e) { toast('Upload error: ' + e.message, true); }
+      if (d.ok) {
+        toast('✓ '+file.name+(tag?' ['+tag+']':''));
+        if (!attachCounts[String(id)]) attachCounts[String(id)] = {total:0,tags:{}};
+        attachCounts[String(id)].total++;
+        if (tag) attachCounts[String(id)].tags[tag] = (attachCounts[String(id)].tags[tag]||0)+1;
+      } else toast('Upload failed: '+(d.error||''), true);
+    } catch(e) { toast('Upload error: '+e.message, true); }
   }
-  loadAttachments();
-  $('attach-file-input').value = '';
+  loadAttachments(); $('attach-file-input').value = '';
+  if ($('page-loadboard')?.classList.contains('active')) renderLB();
+  if ($('page-maintenance')?.classList.contains('active')) renderMaint();
 }
 
 async function loadAttachments() {
@@ -3744,38 +3821,46 @@ async function loadAttachments() {
   const list = $('attach-list');
   list.innerHTML = '<div style="color:var(--text3);font-size:12px;text-align:center;padding:12px">Loading...</div>';
   try {
-    const files = await fetch('/api/attachments/' + module + '/' + id, {credentials:'include'}).then(r=>r.json());
-    if (!files.length) {
-      list.innerHTML = '<div style="color:var(--text3);font-size:12px;text-align:center;padding:20px">No files attached yet</div>';
-      return;
-    }
-    list.innerHTML = files.map(f => {
-      const icon = getFileIcon(f.mime_type, f.original_name);
+    const files = await fetch('/api/attachments/'+module+'/'+id, {credentials:'include'}).then(r=>r.json());
+    if (!files.length) { list.innerHTML = '<div style="color:var(--text3);font-size:12px;text-align:center;padding:20px">No files attached yet</div>'; return; }
+    const tagged = {}, untagged = [];
+    files.forEach(f => { if (f.tag) { if (!tagged[f.tag]) tagged[f.tag]=[]; tagged[f.tag].push(f); } else untagged.push(f); });
+    const renderFile = f => {
       const isImg = f.mime_type && f.mime_type.startsWith('image/');
       const isPdf = f.mime_type === 'application/pdf';
-      const sizeMB = (f.file_size / 1024 / 1024).toFixed(1);
-      const date = f.created_at ? new Date(f.created_at).toLocaleDateString() : '';
-      return `<div class="attach-item" style="flex-direction:column;align-items:stretch">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="attach-icon" style="background:var(--bg5)">${icon}</div>
+      const sizeMB = (f.file_size/1024/1024).toFixed(1);
+      return `<div class="attach-item" style="flex-direction:column;align-items:stretch;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px">${getFileIcon(f.mime_type,f.original_name)}</span>
           <div style="flex:1;min-width:0">
             <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.original_name}</div>
-            <div style="font-size:10px;color:var(--text3)">${sizeMB}MB · ${date} · ${f.uploaded_by||'system'}</div>
+            <div style="font-size:10px;color:var(--text3)">${sizeMB}MB · ${f.uploaded_by||'system'} · ${f.created_at?new Date(f.created_at).toLocaleDateString():''}</div>
           </div>
-          <div style="display:flex;gap:6px;flex-shrink:0">
-            <a href="/api/attachments/file/${f.filename}" target="_blank"
-               style="background:var(--blue-bg);color:var(--blue);border:none;border-radius:5px;padding:4px 8px;font-size:11px;cursor:pointer;text-decoration:none;font-weight:600">Open</a>
-            <button onclick="deleteAttachment(${f.id})"
-              style="background:var(--red-bg);color:var(--red);border:none;border-radius:5px;padding:4px 8px;font-size:11px;cursor:pointer">✕</button>
-          </div>
+          <a href="/api/attachments/file/${f.filename}" target="_blank" class="btn btn-ghost btn-sm" style="font-size:11px">Open</a>
+          <button onclick="deleteAttachment(${f.id},'panel')" style="background:var(--red-bg);color:var(--red);border:none;border-radius:5px;padding:4px 8px;font-size:11px;cursor:pointer">✕</button>
         </div>
-        ${isImg ? `<img src="/api/attachments/file/${f.filename}" class="attach-preview" style="max-height:200px;object-fit:contain">` : ''}
-        ${isPdf ? `<iframe src="/api/attachments/file/${f.filename}" class="attach-preview" style="height:300px;border:none"></iframe>` : ''}
+        ${isImg?`<img src="/api/attachments/file/${f.filename}" style="width:100%;max-height:200px;object-fit:contain;border-radius:6px;margin-top:8px">`: ''}
+        ${isPdf?`<iframe src="/api/attachments/file/${f.filename}" style="width:100%;height:280px;border:none;border-radius:6px;margin-top:8px"></iframe>`:''}
       </div>`;
-    }).join('');
-  } catch(e) {
-    list.innerHTML = '<div style="color:var(--red);font-size:12px;padding:12px">Error loading files</div>';
-  }
+    };
+    const slots = MODULE_SLOTS[module]||[];
+    let html = '';
+    slots.forEach(s => {
+      const sf = tagged[s.tag]||[];
+      html += `<div style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:5px 8px;background:var(--bg4);border-radius:6px;border-left:3px solid ${s.color}">
+          <span style="font-size:12px;font-weight:700;color:${s.color}">${s.label}</span>
+          ${s.required&&!sf.length?'<span style="color:var(--red);font-size:10px;margin-left:auto">⚠ Missing</span>':''}
+          ${sf.length?`<span style="color:var(--green);font-size:10px;margin-left:auto">✓ ${sf.length} file${sf.length>1?'s':''}</span>`:''}
+        </div>
+        ${sf.length?sf.map(renderFile).join(''):'<div style="font-size:11px;color:var(--text3);padding:4px 8px">— None uploaded yet —</div>'}
+      </div>`;
+      delete tagged[s.tag];
+    });
+    Object.entries(tagged).forEach(([tag,tf]) => { html += `<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">${tag}</div>${tf.map(renderFile).join('')}</div>`; });
+    if (untagged.length) html += `<div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Untagged</div>${untagged.map(renderFile).join('')}</div>`;
+    list.innerHTML = html;
+  } catch(e) { list.innerHTML = '<div style="color:var(--red);font-size:12px;padding:12px">Error loading files</div>'; }
 }
 
 function getFileIcon(mime, name) {
@@ -3789,23 +3874,27 @@ function getFileIcon(mime, name) {
   return '📎';
 }
 
-async function deleteAttachment(id) {
+async function deleteAttachment(id, source) {
   if (!confirm('Delete this file?')) return;
-  const r = await fetch('/api/attachments/' + id, {method:'DELETE', credentials:'include'});
+  const r = await fetch('/api/attachments/'+id, {method:'DELETE',credentials:'include'});
   const d = await r.json();
-  if (d.ok) { toast('File deleted'); loadAttachments(); }
-  else toast('Delete failed', true);
+  if (d.ok) {
+    toast('File deleted');
+    if (source==='detail') loadDetailFiles(); else loadAttachments();
+    if ($('page-loadboard')?.classList.contains('active')) renderLB();
+    if ($('page-maintenance')?.classList.contains('active')) renderMaint();
+  } else toast('Delete failed', true);
 }
 
-// Attach counts cache for badge display
 const attachCounts = {};
+
 async function loadAttachCounts(module, ids) {
-  if (!ids.length) return;
+  if (!ids||!ids.length) return;
   try {
     const r = await fetch('/api/attachments/counts', {
-      method: 'POST', credentials: 'include',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ module, ids: ids.map(String) })
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({module, ids: ids.map(String)})
     });
     const counts = await r.json();
     Object.assign(attachCounts, counts);
@@ -3813,11 +3902,37 @@ async function loadAttachCounts(module, ids) {
 }
 
 function attachBadge(module, id, label) {
-  const cnt = attachCounts[String(id)] || 0;
-  return `<span class="attach-badge" onclick="event.stopPropagation();openAttachPanel('${module}','${id}','${label}')" title="Attachments">
-    📎${cnt > 0 ? ' '+cnt : ''}
-  </span>`;
+  const info = attachCounts[String(id)];
+  const cnt = info ? info.total : 0;
+  return `<span class="attach-badge" onclick="event.stopPropagation();openAttachPanel('${module}','${id}','${label}')" title="Files">📎${cnt>0?' '+cnt:''}</span>`;
 }
+
+function loadDocBadges(loadId, status) {
+  const info = attachCounts[String(loadId)];
+  const tags = info ? (info.tags||{}) : {};
+  const hasPOD = (tags['POD']||0) > 0;
+  const hasRC  = (tags['Rate Con']||0) > 0;
+  const isDel  = status === 'Delivered';
+  let b = '';
+  if (!hasRC) b += `<span style="background:#1e3a5f;color:#60a5fa;border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700;margin-left:2px;cursor:pointer" onclick="event.stopPropagation();openAttachAndTag('loads','${loadId}','Load ${loadId}','Rate Con')">RC</span>`;
+  if (isDel && !hasPOD) b += `<span style="background:#450a0a;color:#ef4444;border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700;margin-left:2px;cursor:pointer" onclick="event.stopPropagation();openAttachAndTag('loads','${loadId}','Load ${loadId}','POD')">POD!</span>`;
+  else if (isDel && hasPOD) b += `<span style="background:#052e16;color:#22c55e;border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700;margin-left:2px">✓POD</span>`;
+  return b;
+}
+
+function repairDocBadge(repairId) {
+  const info = attachCounts[String(repairId)];
+  const tags = info ? (info.tags||{}) : {};
+  const hasInv = (tags['Invoice']||0) > 0;
+  if (!hasInv) return `<span style="background:#431407;color:#f97316;border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700;margin-left:2px;cursor:pointer" onclick="event.stopPropagation();openAttachAndTag('repairs','${repairId}','Repair','Invoice')">INV?</span>`;
+  return `<span style="background:#052e16;color:#22c55e;border-radius:3px;padding:1px 4px;font-size:9px;font-weight:700;margin-left:2px">✓INV</span>`;
+}
+
+function openAttachAndTag(module, id, label, tag) {
+  openAttachPanel(module, id, label);
+  setTimeout(() => setAttachTag(tag), 150);
+}
+
 
 // ── BOOT ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
