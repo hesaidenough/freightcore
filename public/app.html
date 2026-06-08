@@ -1508,7 +1508,7 @@ function editLoad(idx) {
   openM('mLoad');
 }
 
-function saveLoad() {
+async function saveLoad() {
   const idx = $('fl_edit_idx').value;
   const isSplit    = $('fl_split')?.checked;
   const isMultiStop= $('fl_multistop')?.checked;
@@ -2450,7 +2450,7 @@ function editEquipDB(unit, type) {
   $('feq_edit_idx').value = -1; $('feq_edit_class').value = 'db-'+type+'-'+unit;
   openM('mEquip');
 }
-function delEquip(idx) {
+async function delEquip(idx) {
   toast('Use the edit button to mark equipment as Out of Service', true);
 }
 
@@ -2743,7 +2743,7 @@ function renderFuel() {
   }).join('') || `<tr><td colspan="14" style="text-align:center;color:var(--text2);padding:24px">No fuel transactions. Upload a .DAT file using the button above.</td></tr>`;
 }
 
-function editFuel(xIdx, allIdx) {
+async function editFuel(xIdx, allIdx) {
   const f = allFuel()[allIdx >= 0 ? allIdx : xIdx];
   if (!f) return;
   const diesel = (f.products||[]).find(p=>p.code==='ULSD');
