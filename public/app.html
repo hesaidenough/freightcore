@@ -752,19 +752,8 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
     </div>
 
     <div class="page" id="page-statements">
-      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end">
-        <div class="fitem" style="min-width:160px"><label>Driver</label><select id="st-drv" onchange="renderStmt()"></select></div>
-        <div class="fitem"><label>Week Start (Mon)</label><input type="date" id="st-wk" onchange="renderStmt()"></div>
-        <div style="display:flex;gap:6px;margin-top:18px">
-          <button class="btn btn-ghost btn-sm" onclick="shiftWeek(-1)">← Prev</button>
-          <button class="btn btn-ghost btn-sm" onclick="shiftWeek(1)">Next →</button>
-          <button class="btn btn-yellow" onclick="downloadStmtPDF()" style="padding:8px 20px;font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(245,158,11,.4)">⬇ Download PDF</button>
-        </div>
-      </div>
-      <div id="stmt-out" style="max-width:820px"></div>
-
-      <!-- Payout Analytics -->
-      <div class="card" style="margin-top:20px" id="stmt-analytics-card">
+      <!-- Payout Analytics — TOP -->
+      <div class="card" style="margin-bottom:14px" id="stmt-analytics-card">
         <div class="card-hdr" style="flex-wrap:wrap;gap:10px">
           <span class="card-title">📊 Payout & Deduction Analytics</span>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -777,16 +766,16 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
               <option value="2025">Year 2025</option>
               <option value="custom">Custom Range</option>
             </select>
-            <span id="sa-custom-range" style="display:none;gap:6px;align-items:center;display:none">
+            <span id="sa-custom-range" style="display:none;gap:6px;align-items:center">
               <input type="date" id="sa-from" onchange="renderStmtAnalytics()" style="font-size:11px;padding:3px 6px;background:var(--bg4);border:1px solid var(--border2);border-radius:5px;color:var(--text)">
               <span style="color:var(--text3)">to</span>
               <input type="date" id="sa-to" onchange="renderStmtAnalytics()" style="font-size:11px;padding:3px 6px;background:var(--bg4);border:1px solid var(--border2);border-radius:5px;color:var(--text)">
             </span>
             <select id="sa-chart-type" onchange="renderStmtAnalytics()" style="font-size:12px;padding:4px 8px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text)">
-              <option value="bar">📊 Bar Chart</option>
+              <option value="bar">📊 Bar</option>
               <option value="hbar">↔ Horizontal Bar</option>
-              <option value="line">📈 Line Chart</option>
-              <option value="pie">🥧 Pie Chart</option>
+              <option value="line">📈 Line</option>
+              <option value="pie">🥧 Pie</option>
             </select>
             <select id="sa-view" onchange="renderStmtAnalytics()" style="font-size:12px;padding:4px 8px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text)">
               <option value="payouts">💰 Payouts by Driver</option>
@@ -798,7 +787,28 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
         </div>
         <div class="card-body">
           <div id="sa-kpis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px"></div>
-          <div id="sa-chart" style="height:280px;overflow:hidden"></div>
+          <div id="sa-chart" style="height:260px;overflow:hidden"></div>
+        </div>
+      </div>
+
+      <!-- Statement Generator -->
+      <div class="card">
+        <div class="card-hdr"><span class="card-title">📋 Generate Statement</span></div>
+        <div class="card-body">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+            <div class="fitem" style="min-width:160px"><label>Driver</label>
+              <select id="st-drv" onchange="renderStmt()">
+                <option value="">— Select Driver —</option>
+              </select>
+            </div>
+            <div class="fitem"><label>Week Start (Mon)</label><input type="date" id="st-wk" onchange="renderStmt()"></div>
+            <div style="display:flex;gap:6px;margin-top:18px">
+              <button class="btn btn-ghost btn-sm" onclick="shiftWeek(-1)">← Prev</button>
+              <button class="btn btn-ghost btn-sm" onclick="shiftWeek(1)">Next →</button>
+              <button class="btn btn-yellow" onclick="downloadStmtPDF()" style="padding:8px 20px;font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(245,158,11,.4)">⬇ Download PDF</button>
+            </div>
+          </div>
+          <div id="stmt-out" style="max-width:820px;margin-top:14px"></div>
         </div>
       </div>
     </div>
@@ -818,6 +828,38 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
     </div>
 
     <div class="page" id="page-maintenance">
+      <!-- Maintenance Analytics -->
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-hdr" style="flex-wrap:wrap;gap:10px">
+          <span class="card-title">🔧 Maintenance Analytics</span>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <select id="ma-period" onchange="renderMaintAnalytics()" style="font-size:12px;padding:4px 8px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text)">
+              <option value="ytd">YTD</option>
+              <option value="month">This Month</option>
+              <option value="3mo">Last 3 Months</option>
+              <option value="6mo">Last 6 Months</option>
+              <option value="year">Last 12 Months</option>
+              <option value="2025">Year 2025</option>
+            </select>
+            <select id="ma-chart-type" onchange="renderMaintAnalytics()" style="font-size:12px;padding:4px 8px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text)">
+              <option value="hbar">↔ Horizontal Bar</option>
+              <option value="bar">📊 Bar</option>
+              <option value="pie">🥧 Pie</option>
+            </select>
+            <select id="ma-view" onchange="renderMaintAnalytics()" style="font-size:12px;padding:4px 8px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text)">
+              <option value="unit">🚛 Cost by Unit</option>
+              <option value="type">🔩 Cost by Type</option>
+              <option value="vendor">🏪 Cost by Vendor</option>
+              <option value="vs_revenue">⚖️ Maint vs Revenue by Truck</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="ma-kpis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:12px"></div>
+          <div id="ma-chart" style="height:220px;overflow:hidden"></div>
+        </div>
+      </div>
+
       <div class="fbar">
         <input type="search" id="mnt-q" placeholder="🔍 Search…" oninput="renderMaint()">
         <select id="mnt-unit" onchange="renderMaint()"><option value="">All Units</option></select>
@@ -868,6 +910,38 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
     </div>
 
     <div class="page" id="page-fuel">
+      <!-- Fuel Analytics -->
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-hdr" style="flex-wrap:wrap;gap:10px">
+          <span class="card-title">⛽ Fuel Analytics</span>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <select id="fa-period" onchange="renderFuelAnalytics()" style="font-size:12px;padding:4px 8px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text)">
+              <option value="ytd">YTD</option>
+              <option value="month">This Month</option>
+              <option value="3mo">Last 3 Months</option>
+              <option value="6mo">Last 6 Months</option>
+              <option value="year">Last 12 Months</option>
+              <option value="2025">Year 2025</option>
+            </select>
+            <select id="fa-chart-type" onchange="renderFuelAnalytics()" style="font-size:12px;padding:4px 8px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text)">
+              <option value="hbar">↔ Horizontal Bar</option>
+              <option value="bar">📊 Bar</option>
+              <option value="pie">🥧 Pie</option>
+            </select>
+            <select id="fa-view" onchange="renderFuelAnalytics()" style="font-size:12px;padding:4px 8px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--text)">
+              <option value="driver">👤 Cost by Driver</option>
+              <option value="unit">🚛 Cost by Unit</option>
+              <option value="state">📍 Cost by State</option>
+              <option value="vs_revenue">⚖️ Fuel vs Revenue by Driver</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="fa-kpis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:12px"></div>
+          <div id="fa-chart" style="height:220px;overflow:hidden"></div>
+        </div>
+      </div>
+
       <div class="fbar">
         <input type="search" id="fuel-q" placeholder="🔍 Search driver, unit, location, account…" oninput="renderFuel()">
         <select id="fuel-drv" onchange="renderFuel()"><option value="">All Drivers</option></select>
@@ -1678,9 +1752,9 @@ function nav(page) {
   if (page === 'loadboard')  renderLB();
   if (page === 'statements') { renderStmt(); renderStmtAnalytics(); }
   if (page === 'drivers')    renderDrivers();
-  if (page === 'maintenance')renderMaint();
+  if (page === 'maintenance') { renderMaint(); renderMaintAnalytics(); }
   if (page === 'equipment')  { renderEquip(); checkExpiryAlerts(); }
-  if (page === 'fuel')       renderFuel();
+  if (page === 'fuel')        { renderFuel(); renderFuelAnalytics(); }
   if (page === 'revenue')    renderRevenue();
   if (page === 'brokers')    renderBrokers();
   if (page === 'checklist')  renderCklists();
@@ -2571,6 +2645,185 @@ async function saveLoad() {
   } catch(e) {
     toast('Error saving load: ' + e.message, true);
   }
+}
+
+// ── SHARED ANALYTICS HELPERS ──────────────────────────────────────────────────
+const ACOLS = ['#3b82f6','#22c55e','#f97316','#a855f7','#f59e0b','#14b8a6','#ec4899','#8b5cf6','#ef4444','#06b6d4','#84cc16','#f43f5e'];
+
+function filterByAnalyticsPeriod(items, dateField, period, fromDate, toDate) {
+  const yr = new Date().getFullYear();
+  const mo = new Date().getMonth()+1;
+  return items.filter(item => {
+    const d = item[dateField]||'';
+    if (period==='ytd')    return d.startsWith(String(yr));
+    if (period==='month')  return d.startsWith(yr+'-'+String(mo).padStart(2,'0'));
+    if (period==='3mo')  { const w=new Date(); w.setMonth(w.getMonth()-3); return d>=localDate(w); }
+    if (period==='6mo')  { const w=new Date(); w.setMonth(w.getMonth()-6); return d>=localDate(w); }
+    if (period==='year') { const w=new Date(); w.setFullYear(w.getFullYear()-1); return d>=localDate(w); }
+    if (period==='2025') return d.startsWith('2025');
+    if (period==='custom'&&fromDate&&toDate) return d>=fromDate&&d<=toDate;
+    return d.startsWith(String(yr));
+  });
+}
+
+function renderAnalyticsChart(chartEl, sorted, chartType, valFmt) {
+  if (!sorted.length) { chartEl.innerHTML='<div style="color:var(--text3);text-align:center;padding:40px">No data for period</div>'; return; }
+  const maxVal = Math.max(...sorted.map(([,v])=>v),1);
+
+  if (chartType==='pie') {
+    const total = sorted.reduce((s,[,v])=>s+v,0);
+    let angle = -90;
+    const slices = sorted.map(([k,v],i) => {
+      const pct=v/total; const deg=pct*360;
+      const a1=angle*Math.PI/180, a2=(angle+deg)*Math.PI/180;
+      const x1=50+42*Math.cos(a1), y1=50+42*Math.sin(a1);
+      const x2=50+42*Math.cos(a2), y2=50+42*Math.sin(a2);
+      const large=deg>180?1:0;
+      const path=`M50,50 L${x1.toFixed(1)},${y1.toFixed(1)} A42,42 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} Z`;
+      angle+=deg;
+      return {k,v,path,color:ACOLS[i%ACOLS.length],pct:Math.round(pct*100)};
+    });
+    chartEl.innerHTML = `<div style="display:flex;gap:16px;align-items:center;height:100%">
+      <svg viewBox="0 0 100 100" style="width:180px;height:180px;flex-shrink:0">
+        ${slices.map(s=>`<path d="${s.path}" fill="${s.color}" stroke="var(--bg3)" stroke-width="0.5"><title>${s.k}: ${valFmt(s.v)} (${s.pct}%)</title></path>`).join('')}
+      </svg>
+      <div style="display:flex;flex-direction:column;gap:5px;overflow-y:auto;max-height:200px">
+        ${slices.map(s=>`<div style="display:flex;align-items:center;gap:6px;font-size:11px">
+          <div style="width:10px;height:10px;border-radius:2px;background:${s.color};flex-shrink:0"></div>
+          <span style="font-weight:600">${s.k}</span>
+          <span style="color:var(--green);margin-left:auto;padding-left:8px">${valFmt(s.v)}</span>
+          <span style="color:var(--text3);font-size:9px">${s.pct}%</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  } else if (chartType==='hbar') {
+    chartEl.innerHTML = `<div style="display:flex;flex-direction:column;gap:7px;overflow-y:auto;max-height:210px">
+      ${sorted.map(([k,v],i)=>`<div style="display:flex;align-items:center;gap:8px">
+        <div style="width:90px;font-size:11px;font-weight:600;text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${k}">${k}</div>
+        <div style="flex:1;background:var(--bg5);border-radius:4px;overflow:hidden;height:20px">
+          <div style="height:100%;width:${Math.round(v/maxVal*100)}%;background:${ACOLS[i%ACOLS.length]};border-radius:4px;display:flex;align-items:center;padding-left:6px;min-width:40px">
+            <span style="font-size:10px;font-weight:700;color:#fff;white-space:nowrap">${valFmt(v)}</span>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  } else {
+    chartEl.innerHTML = `<div style="display:flex;align-items:flex-end;gap:5px;height:100%;padding-bottom:18px">
+      ${sorted.map(([k,v],i)=>`<div class="bcol" style="flex:1;min-width:0">
+        <div class="btt">${k}: ${valFmt(v)}</div>
+        <div class="bbar" style="height:${Math.max(4,v/maxVal*210)}px;background:${ACOLS[i%ACOLS.length]}"></div>
+        <div class="blabel" style="overflow:hidden;text-overflow:ellipsis">${k.slice(0,7)}</div>
+      </div>`).join('')}
+    </div>`;
+  }
+}
+
+// ── MAINTENANCE ANALYTICS ─────────────────────────────────────────────────────
+function renderMaintAnalytics() {
+  const period = $('ma-period')?.value||'ytd';
+  const chartType = $('ma-chart-type')?.value||'hbar';
+  const view = $('ma-view')?.value||'unit';
+  const chartEl = $('ma-chart'); const kpiEl = $('ma-kpis');
+  if (!chartEl) return;
+
+  const pReps = filterByAnalyticsPeriod(allRepairs().filter(r=>r.amount), 'date', period);
+  const pLoads = filterByAnalyticsPeriod(allLoads().filter(l=>l.status==='Delivered'), 'pu_date', period);
+  const totalMaint = pReps.reduce((s,r)=>s+(r.amount||0),0);
+  const totalRev   = pLoads.reduce((s,l)=>s+l.amount,0);
+
+  if (kpiEl) kpiEl.innerHTML = `
+    <div class="kpi orange" style="padding:10px 14px"><div class="kpi-label" style="font-size:10px">Total Maint Cost</div><div class="kpi-value" style="font-size:18px">${f$(totalMaint)}</div><div class="kpi-sub">${pReps.length} entries</div></div>
+    <div class="kpi green"  style="padding:10px 14px"><div class="kpi-label" style="font-size:10px">Gross Revenue</div><div class="kpi-value" style="font-size:18px">${f$(totalRev)}</div></div>
+    <div class="kpi yellow" style="padding:10px 14px"><div class="kpi-label" style="font-size:10px">Maint Ratio</div><div class="kpi-value" style="font-size:18px">${totalRev?Math.round(totalMaint/totalRev*100):0}%</div><div class="kpi-sub">of gross revenue</div></div>
+    <div class="kpi blue"   style="padding:10px 14px"><div class="kpi-label" style="font-size:10px">Avg Per Entry</div><div class="kpi-value" style="font-size:18px">${f$(pReps.length?totalMaint/pReps.length:0)}</div></div>
+  `;
+
+  if (view === 'vs_revenue') {
+    // Maint cost vs revenue by truck
+    const trucks = [...new Set(pReps.map(r=>r.unit).filter(Boolean))];
+    const sorted = trucks.map(u => {
+      const mCost = pReps.filter(r=>r.unit===u).reduce((s,r)=>s+(r.amount||0),0);
+      const rev   = pLoads.filter(l=>String(l.truck)===String(u)).reduce((s,l)=>s+l.amount,0);
+      return {u, mCost, rev};
+    }).sort((a,b)=>b.mCost-a.mCost);
+    const maxV = Math.max(...sorted.map(s=>Math.max(s.mCost,s.rev)),1);
+    chartEl.innerHTML = `<div style="display:flex;align-items:flex-end;gap:8px;height:100%;padding-bottom:18px">
+      ${sorted.map((s,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div style="width:100%;display:flex;gap:2px;align-items:flex-end;justify-content:center">
+          <div title="Revenue: ${f$(s.rev)}" style="flex:1;height:${Math.max(4,s.rev/maxV*200)}px;background:#22c55e;border-radius:3px 3px 0 0"></div>
+          <div title="Maint: ${f$(s.mCost)}" style="flex:1;height:${Math.max(4,s.mCost/maxV*200)}px;background:#f97316;border-radius:3px 3px 0 0"></div>
+        </div>
+        <div style="font-size:9px;text-align:center">${s.u}</div>
+      </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:14px;margin-top:4px;font-size:11px">
+      <span style="display:flex;align-items:center;gap:4px"><span style="background:#22c55e;width:10px;height:10px;border-radius:2px;display:inline-block"></span>Revenue</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="background:#f97316;width:10px;height:10px;border-radius:2px;display:inline-block"></span>Maint Cost</span>
+    </div>`;
+    return;
+  }
+
+  let grouped = {};
+  if (view==='unit')   pReps.forEach(r => { grouped[r.unit||'?']  = (grouped[r.unit||'?']||0)  + (r.amount||0); });
+  if (view==='type')   pReps.forEach(r => { grouped[r.type||'?']  = (grouped[r.type||'?']||0)  + (r.amount||0); });
+  if (view==='vendor') pReps.forEach(r => { grouped[r.vendor||'?']= (grouped[r.vendor||'?']||0)+ (r.amount||0); });
+  const sorted = Object.entries(grouped).sort(([,a],[,b])=>b-a).slice(0,12);
+  renderAnalyticsChart(chartEl, sorted, chartType, f$);
+}
+
+// ── FUEL ANALYTICS ────────────────────────────────────────────────────────────
+function renderFuelAnalytics() {
+  const period = $('fa-period')?.value||'ytd';
+  const chartType = $('fa-chart-type')?.value||'hbar';
+  const view = $('fa-view')?.value||'driver';
+  const chartEl = $('fa-chart'); const kpiEl = $('fa-kpis');
+  if (!chartEl) return;
+
+  const pFuel  = filterByAnalyticsPeriod(allFuel(), 'date', period);
+  const pLoads = filterByAnalyticsPeriod(allLoads().filter(l=>l.status==='Delivered'), 'pu_date', period);
+  const totalFuel = pFuel.reduce((s,f)=>s+(f.total||0),0);
+  const totalGal  = pFuel.reduce((s,f)=>s+(f.diesel_gal||0),0);
+  const totalRev  = pLoads.reduce((s,l)=>s+l.amount,0);
+
+  if (kpiEl) kpiEl.innerHTML = `
+    <div class="kpi purple" style="padding:10px 14px"><div class="kpi-label" style="font-size:10px">Total Fuel Cost</div><div class="kpi-value" style="font-size:18px">${f$(totalFuel)}</div><div class="kpi-sub">${pFuel.length} txns</div></div>
+    <div class="kpi blue"   style="padding:10px 14px"><div class="kpi-label" style="font-size:10px">Total Gallons</div><div class="kpi-value" style="font-size:18px">${Math.round(totalGal).toLocaleString()}</div><div class="kpi-sub">diesel</div></div>
+    <div class="kpi green"  style="padding:10px 14px"><div class="kpi-label" style="font-size:10px">Gross Revenue</div><div class="kpi-value" style="font-size:18px">${f$(totalRev)}</div></div>
+    <div class="kpi yellow" style="padding:10px 14px"><div class="kpi-label" style="font-size:10px">Fuel Ratio</div><div class="kpi-value" style="font-size:18px">${totalRev?Math.round(totalFuel/totalRev*100):0}%</div><div class="kpi-sub">of gross revenue</div></div>
+  `;
+
+  if (view === 'vs_revenue') {
+    const drivers = [...new Set(pFuel.map(f=>f.driver||f.driver_name).filter(Boolean))].slice(0,12);
+    const sorted = drivers.map(d => {
+      const fCost = pFuel.filter(f=>(f.driver||f.driver_name)===d).reduce((s,f)=>s+(f.total||0),0);
+      // Match driver name to DRIVER_LIST
+      const dKey = DRIVER_LIST.find(k => d.toUpperCase().includes(k) || k.includes(d.toUpperCase().split(' ')[0])) || d;
+      const rev  = pLoads.filter(l=>l.driver===dKey).reduce((s,l)=>s+l.amount,0);
+      return {d, fCost, rev};
+    }).sort((a,b)=>b.fCost-a.fCost);
+    const maxV = Math.max(...sorted.map(s=>Math.max(s.fCost,s.rev)),1);
+    chartEl.innerHTML = `<div style="display:flex;align-items:flex-end;gap:8px;height:100%;padding-bottom:18px">
+      ${sorted.map((s,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div style="width:100%;display:flex;gap:2px;align-items:flex-end;justify-content:center">
+          <div title="Revenue: ${f$(s.rev)}" style="flex:1;height:${Math.max(4,s.rev/maxV*200)}px;background:#22c55e;border-radius:3px 3px 0 0"></div>
+          <div title="Fuel: ${f$(s.fCost)}" style="flex:1;height:${Math.max(4,s.fCost/maxV*200)}px;background:#a855f7;border-radius:3px 3px 0 0"></div>
+        </div>
+        <div style="font-size:9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%">${s.d.split(' ')[0].slice(0,7)}</div>
+      </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:14px;margin-top:4px;font-size:11px">
+      <span style="display:flex;align-items:center;gap:4px"><span style="background:#22c55e;width:10px;height:10px;border-radius:2px;display:inline-block"></span>Revenue</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="background:#a855f7;width:10px;height:10px;border-radius:2px;display:inline-block"></span>Fuel Cost</span>
+    </div>`;
+    return;
+  }
+
+  let grouped = {};
+  if (view==='driver') pFuel.forEach(f => { const k=(f.driver||f.driver_name||'?').split(' ')[0]; grouped[k]=(grouped[k]||0)+(f.total||0); });
+  if (view==='unit')   pFuel.forEach(f => { const k=f.unit||'?'; grouped[k]=(grouped[k]||0)+(f.total||0); });
+  if (view==='state')  pFuel.forEach(f => { const k=f.state||'?'; grouped[k]=(grouped[k]||0)+(f.total||0); });
+  const sorted = Object.entries(grouped).sort(([,a],[,b])=>b-a).slice(0,12);
+  renderAnalyticsChart(chartEl, sorted, chartType, f$);
 }
 
 // ── DRIVER PAYOUT ANALYTICS ───────────────────────────────────────────────────
