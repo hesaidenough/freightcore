@@ -684,7 +684,7 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
         <div class="nav-label" id="nav-bg-label" style="display:none">Brokerage</div>
         <div class="nav-item" id="nav-bg-dispatch" style="display:none" onclick="nav('bg-dispatch')"><span class="ico">📋</span>Dispatch Board</div>
         <div class="nav-item" id="nav-bg-customers" style="display:none" onclick="nav('bg-customers')"><span class="ico">👤</span>Customers</div>
-        <div class="nav-item" id="nav-bg-carriers" style="display:none" onclick="nav('bg-carriers')"><span class="ico">🚛</span>Carriers</div>
+        <div class="nav-item" id="nav-bg-carriers" style="display:none" onclick="nav('bg-carriers')"><span class="ico">🚛</span>External Carriers</div>
         <div class="nav-item" id="nav-bg-shippers" style="display:none" onclick="nav('bg-shippers')"><span class="ico">📦</span>Shippers</div>
         <div class="nav-item" id="nav-bg-consignees" style="display:none" onclick="nav('bg-consignees')"><span class="ico">🏁</span>Consignees</div>
         <div class="nav-item" id="nav-bg-invoices" style="display:none" onclick="nav('bg-invoices')"><span class="ico">🧾</span>Invoices</div>
@@ -1396,26 +1396,65 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
 
 <!-- BG INVOICES (accounting only) -->
 <div class="page" id="page-bg-invoices">
-  <div class="fbar">
-    <input type="search" id="bginv-q" placeholder="🔍 Search invoices…" oninput="renderBGInvoices()">
-    <select id="bginv-st" onchange="renderBGInvoices()">
-      <option value="">All Status</option>
-      <option>Draft</option><option>Sent</option><option>Paid</option><option>Partial</option><option>Overdue</option>
-    </select>
-    <input type="date" id="bginv-from" onchange="renderBGInvoices()">
-    <input type="date" id="bginv-to" onchange="renderBGInvoices()">
-    <span id="bginv-cnt" style="font-size:11px;color:var(--text3)"></span>
-    <button class="btn btn-ghost btn-sm" onclick="exportBGInvoicesQB()" style="color:var(--green);margin-left:auto">⬇ QB Export</button>
+  <!-- Accounting Manager Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+    <span style="font-size:14px;font-weight:700;color:var(--text)">Accounting Manager</span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;gap:4px;font-size:10px;align-items:center">
+        <span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:3px">■ Exported</span>
+        <span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:3px">■ Batch Invoice</span>
+        <span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:3px">■ Exported &amp; Batch</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="exportBGInvoicesQB()" style="color:var(--green)">⬇ QB Export</button>
+    </div>
   </div>
+
+  <!-- Tabs matching ITS -->
+  <div style="display:flex;gap:0;margin-bottom:10px;border-bottom:2px solid var(--border)">
+    <button class="acct-tab active" data-tab="delivered"  onclick="switchAcctTab('delivered')"  style="padding:7px 16px;border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;background:var(--bg3);font-size:12px;font-weight:700;cursor:pointer;color:var(--text);margin-right:3px">Delivered</button>
+    <button class="acct-tab" data-tab="completed"  onclick="switchAcctTab('completed')"  style="padding:7px 16px;border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;background:var(--bg4);font-size:12px;cursor:pointer;color:var(--text2);margin-right:3px">Completed</button>
+    <button class="acct-tab" data-tab="invoiced"   onclick="switchAcctTab('invoiced')"   style="padding:7px 16px;border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;background:var(--bg4);font-size:12px;cursor:pointer;color:var(--text2);margin-right:3px">Invoiced</button>
+    <button class="acct-tab" data-tab="invpaid"    onclick="switchAcctTab('invpaid')"    style="padding:7px 16px;border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;background:var(--bg4);font-size:12px;cursor:pointer;color:var(--text2)">Invoice / Paid</button>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="fbar" style="margin-bottom:10px">
+    <select id="acct-search-field" style="font-size:12px;padding:4px 8px;background:var(--bg4);border:1px solid var(--border2);border-radius:5px;color:var(--text)">
+      <option value="all">Search All</option>
+      <option value="load_number">Load Number</option>
+      <option value="invoice_number">Invoice Number</option>
+      <option value="customer">Customer</option>
+      <option value="carrier">Carrier</option>
+      <option value="dispatcher">Dispatcher</option>
+      <option value="wo_number">Work Order #</option>
+      <option value="shipper">Shipper</option>
+      <option value="origin_city">Origin City</option>
+      <option value="origin_state">Origin State</option>
+      <option value="po_numbers">P.O. Numbers</option>
+      <option value="consignee">Consignee</option>
+      <option value="dest_city">Destination City</option>
+      <option value="dest_state">Destination State</option>
+    </select>
+    <input type="search" id="acct-q" placeholder="Search…" oninput="renderBGInvoices()" style="min-width:160px">
+    <span style="font-size:11px;color:var(--text3)">From:</span>
+    <input type="date" id="bginv-from" onchange="renderBGInvoices()">
+    <span style="font-size:11px;color:var(--text3)">To:</span>
+    <input type="date" id="bginv-to" onchange="renderBGInvoices()">
+    <button class="btn btn-ghost btn-sm" onclick="renderBGInvoices()">Search</button>
+    <span id="bginv-cnt" style="font-size:11px;color:var(--text3)"></span>
+  </div>
+
   <div id="bginv-kpis" class="kpi-grid" style="margin-bottom:10px"></div>
-  <div class="card"><div class="card-body tw" style="max-height:calc(100vh - 280px);overflow-y:auto">
+  <div class="card"><div class="card-body tw" style="max-height:calc(100vh - 320px);overflow-y:auto">
     <table><thead><tr>
-      <th>Invoice #</th><th>Load #</th><th>Customer</th>
-      <th onclick="sortBGInv('invoice_date')" style="cursor:pointer">Date↕</th>
-      <th>Due Date</th>
-      <th onclick="sortBGInv('total')" style="cursor:pointer">Amount↕</th>
-      <th>Paid</th><th>Balance</th>
-      <th>Status</th><th style="width:90px">Actions</th>
+      <th onclick="sortBGInv('load_number')" style="cursor:pointer">Load #↕</th>
+      <th onclick="sortBGInv('invoice_number')" style="cursor:pointer">Invoice #↕</th>
+      <th onclick="sortBGInv('invoice_date')" style="cursor:pointer">Inv Date↕</th>
+      <th onclick="sortBGInv('customer_name')" style="cursor:pointer">Customer↕</th>
+      <th onclick="sortBGInv('carrier_name')" style="cursor:pointer">Driver/Carrier↕</th>
+      <th>Paid</th>
+      <th onclick="sortBGInv('aging')" style="cursor:pointer">Aging↕</th>
+      <th>Options</th>
     </tr></thead><tbody id="bginv-tb"></tbody></table>
   </div></div>
 </div>
@@ -1500,11 +1539,13 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
             <option>Quick Pay 30 Days</option><option>Quick Pay ACH</option>
           </select>
         </div>
-        <!-- Profit display -->
-        <div class="fitem" style="background:var(--bg4);border-radius:var(--radius);padding:10px;border:1px solid var(--border2)">
-          <label>Gross Profit</label>
-          <div id="bgl_profit_display" style="font-size:18px;font-weight:700;color:var(--green)">$0.00</div>
-          <div id="bgl_margin_display" style="font-size:10px;color:var(--text3)">0% margin</div>
+        <!-- Profit display - compact -->
+        <div class="fitem" style="background:var(--bg4);border-radius:var(--radius);padding:8px 12px;border:1px solid var(--border2)">
+          <label style="font-size:10px">Gross Profit</label>
+          <div style="display:flex;align-items:baseline;gap:6px">
+            <div id="bgl_profit_display" style="font-size:15px;font-weight:700;color:var(--green)">$0.00</div>
+            <div id="bgl_margin_display" style="font-size:10px;color:var(--text3)">0%</div>
+          </div>
         </div>
 
         <!-- Origin -->
@@ -2488,7 +2529,7 @@ function nav(page) {
     account:'My Account', admin:'Admin Panel',
     'bg-dispatch':'Brokerage — Dispatch Board',
     'bg-customers':'Brokerage — Customers',
-    'bg-carriers':'Brokerage — Carriers',
+    'bg-carriers':'Brokerage — External Carriers',
     'bg-shippers':'Brokerage — Shippers',
     'bg-consignees':'Brokerage — Consignees',
     'bg-invoices':'Brokerage — Invoices',
@@ -6307,6 +6348,8 @@ function renderEquipAlertBanner(expiring) {
 let bgLoads=[], bgCustomers=[], bgCarriers=[], bgShippers=[], bgConsignees=[], bgInvoices=[], bgCarrierPay=[];
 let bgSort={col:'created_at',dir:-1}, bgCustSort={col:'company_name',dir:1};
 let bgCarrSort={col:'name',dir:1}, bgShipSort={col:'name',dir:1}, bgConsSort={col:'name',dir:1}, bgInvSort={col:'invoice_date',dir:-1};
+let bgCarrPage=0, bgShipPage=0, bgConsPage=0;
+const BG_PAGE_SIZE=100;
 
 const BG_ROLES = ['admin','accounting','broker_dispatch','broker_sales'];
 const BG_ACCT_ROLES = ['admin','accounting'];
@@ -6638,9 +6681,15 @@ async function saveBGLoad() {
   };
   if (!payload.customer_name) { toast('Customer required',true); return; }
 
-  // Blacklist check
-  if (payload.carrier_id && bgCarrierBlacklisted(payload.carrier_id)) {
-    if (!confirm('⛔ This carrier is BLACKLISTED. Assign anyway?')) return;
+  // Carrier validation
+  if (payload.carrier_id) {
+    if (bgCarrierBlacklisted(payload.carrier_id)) {
+      if (!confirm('⛔ This carrier is BLACKLISTED. Assign anyway?')) return;
+    }
+    const carr = bgCarriers.find(x=>x.id===payload.carrier_id);
+    if (carr && carr.active===0) {
+      if (!confirm('⚠️ This carrier is INACTIVE (missing mandatory compliance fields). Assign anyway?')) return;
+    }
   }
 
   try {
@@ -6723,105 +6772,201 @@ function generateBGRC(loadObj) {
   const blind = parseInt(l.blind_shipment||0);
   const entity = l.broker_entity||'Continental Group LLC';
   const isCMR = entity.includes('CMR');
-  const companyName = isCMR ? 'CMR Solutions LLC' : 'Continental Group LLC';
-  const companyMC   = isCMR ? 'MC 583592' : 'MC 583592';
-  const companyAddr = isCMR ? 'PO Box 1404, Melrose Park, IL 60161' : 'P.O. Box 1602, Elk Grove Village, IL 60009';
-  const companyPhone= isCMR ? '(630) 363-4437' : '(847) 533-0990';
+  const companyName  = isCMR ? 'CMR Solutions LLC' : 'Continental Group LLC';
+  const companyAddr  = isCMR ? 'PO Box 1404' : 'PO Box 1602';
+  const companyCity  = isCMR ? 'Melrose Park, IL 60161' : 'Elk Grove Village, IL, USA 60009';
+  const companyPhone = isCMR ? '630-363-4437' : '312-667-7257';
+  const companyFax   = isCMR ? '888-315-9792' : '888-491-8530';
+  const companyEmail = isCMR ? 'accounting@shipcmr.com' : 'accounting@shipcg.com';
+  const dispatcher   = l.sales_rep || l.dispatcher || '';
+  const dispPhone    = '312-343-2155';
+  const dispEmail    = l.sales_rep ? (l.sales_rep.toLowerCase().includes('anthony') ? 'anthony@shipcg.com' : companyEmail) : companyEmail;
 
   const fSlash = s => { if(!s)return''; try{const d=new Date(s+'T00:00:00');return`${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`;}catch{return s;} };
-  const totalAmt = (parseFloat(l.customer_rate)||0)+(parseFloat(l.accessorial_amount)||0)+(parseFloat(l.fuel_surcharge)||0);
+  const carrRate = parseFloat(l.carrier_rate)||0;
+  const accAmt   = parseFloat(l.accessorial_amount)||0;
+  const fsc      = parseFloat(l.fuel_surcharge)||0;
+  const totalCarrPay = carrRate + accAmt + fsc;
+
+  const ship = bgShippers.find(x=>x.id===l.shipper_id)||{};
+  const cons = bgConsignees.find(x=>x.id===l.consignee_id)||{};
 
   const doc = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1d4ed8;padding-bottom:16px;margin-bottom:20px">
+  <div style="font-family:Arial,sans-serif;font-size:11px;color:#000;max-width:780px;margin:0 auto">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
       <div>
-        <div style="font-size:22px;font-weight:900;color:#1d4ed8;letter-spacing:1px">${companyName}</div>
-        <div style="font-size:11px;color:#64748b;margin-top:4px">${companyAddr}</div>
-        <div style="font-size:11px;color:#64748b">${companyPhone} &nbsp;·&nbsp; ${companyMC}</div>
+        <div style="font-size:16px;font-weight:900;color:#000">${companyName}</div>
+        <div>${companyAddr}</div>
+        <div>${companyCity}</div>
+        <div>Phone: ${companyPhone}</div>
+        <div>Fax: ${companyFax}</div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:16px;font-weight:800;color:#1e293b">RATE CONFIRMATION</div>
-        <div style="font-size:13px;color:#475569;margin-top:4px">Load # <b>${l.load_number||''}</b></div>
-        ${l.wo_number?`<div style="font-size:11px;color:#64748b">W/O # ${l.wo_number}</div>`:''}
-        <div style="font-size:11px;color:#64748b">Date: ${fSlash(localDate())}</div>
+        <div style="font-size:11px">Dispatcher: ${dispatcher}</div>
+        <div style="font-weight:700">LOAD # ${l.load_number||''}</div>
+        <div>Phone #: ${dispPhone}</div>
+        <div>Fax #: ${companyFax}</div>
+        <div>Ship Date: ${fSlash(l.pu_date)}</div>
+        <div>Today's Date: ${fSlash(localDate())}</div>
+        <div>Email: ${dispEmail}</div>
+        <div>W/O: ${l.wo_number||''}</div>
       </div>
     </div>
 
-    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
-      <tr>
-        <td style="width:50%;vertical-align:top;padding-right:12px">
-          <div style="background:#f1f5f9;padding:12px;border-radius:6px;border-left:4px solid #1d4ed8">
-            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Carrier</div>
-            <div style="font-weight:700;font-size:13px">${l.carrier_name||'TBD'}</div>
-            ${carr.mc_number?`<div style="font-size:11px;color:#475569">MC# ${carr.mc_number}</div>`:''}
-            ${carr.dot_number?`<div style="font-size:11px;color:#475569">DOT# ${carr.dot_number}</div>`:''}
-            ${carr.telephone?`<div style="font-size:11px;color:#475569">${carr.telephone}</div>`:''}
-          </div>
+    <div style="text-align:center;font-size:14px;font-weight:700;border-top:2px solid #000;border-bottom:2px solid #000;padding:4px 0;margin-bottom:10px">
+      Rate &amp; Load Confirmation
+    </div>
+
+    <!-- Carrier row -->
+    <table style="width:100%;border-collapse:collapse;border:1px solid #000;margin-bottom:10px;font-size:11px">
+      <thead>
+        <tr style="background:#e5e7eb">
+          <th style="border:1px solid #000;padding:4px 8px;text-align:left">Carrier</th>
+          <th style="border:1px solid #000;padding:4px 8px">Phone #</th>
+          <th style="border:1px solid #000;padding:4px 8px">Fax #</th>
+          <th style="border:1px solid #000;padding:4px 8px">Equipment</th>
+          <th style="border:1px solid #000;padding:4px 8px">Agreed Amount</th>
+          <th style="border:1px solid #000;padding:4px 8px">Load Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border:1px solid #000;padding:4px 8px;font-weight:700">${l.carrier_name||'TBD'}</td>
+          <td style="border:1px solid #000;padding:4px 8px;text-align:center">${carr.telephone||''}</td>
+          <td style="border:1px solid #000;padding:4px 8px;text-align:center">${carr.fax||''}</td>
+          <td style="border:1px solid #000;padding:4px 8px;text-align:center">${l.truck_type||''}</td>
+          <td style="border:1px solid #000;padding:4px 8px;text-align:center;font-weight:700">$${totalCarrPay.toFixed(2)} USD</td>
+          <td style="border:1px solid #000;padding:4px 8px;text-align:center">${l.status||'Pending'}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Shipper section -->
+    <table style="width:100%;border-collapse:collapse;border:1px solid #000;margin-bottom:8px;font-size:11px">
+      <tr style="background:#e5e7eb">
+        <td colspan="4" style="border:1px solid #000;padding:4px 8px;font-weight:700">
+          Shipper 1 &nbsp;&nbsp; Date: ${fSlash(l.pu_date)}
+          &nbsp;&nbsp; Purchase Order #: ${l.ref_number||''}
+          ${l.pu_contact_email?`<br><span style="font-weight:normal;font-size:10px">${l.pu_contact_email}</span>`:''}
         </td>
-        <td style="width:50%;vertical-align:top;padding-left:12px">
-          <div style="background:#f0fdf4;padding:12px;border-radius:6px;border-left:4px solid #22c55e">
-            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Carrier Rate</div>
-            <div style="font-size:22px;font-weight:900;color:#16a34a">${f$(l.carrier_rate)}</div>
-            <div style="font-size:11px;color:#475569">Payment: ${l.carrier_pay_terms||'Net 30'}</div>
-            ${parseFloat(l.accessorial_amount)>0?`<div style="font-size:11px;color:#475569">Accessorial (${l.accessorial_type||''}): ${f$(l.accessorial_amount)}</div>`:''}
-            ${parseFloat(l.fuel_surcharge)>0?`<div style="font-size:11px;color:#475569">Fuel Surcharge: ${f$(l.fuel_surcharge)}</div>`:''}
-          </div>
+      </tr>
+      <tr>
+        <td colspan="4" style="border:1px solid #000;padding:6px 8px">
+          <div style="font-weight:700">${blind?'[BLIND SHIPMENT — details not disclosed to carrier]':(l.shipper_name||ship.name||'')}</div>
+          ${!blind?`
+          <div>${l.pu_address||ship.address||''}</div>
+          <div>${l.pu_city||ship.city||''}, ${l.pu_state||ship.state||''}, ${l.pu_zip||ship.zip||''}</div>
+          <div>Phone: ${ship.telephone||''}</div>
+          `:''}
+          <div style="margin-top:4px">Time: ${l.pu_time||''} &nbsp;&nbsp; Major Intersection: ${ship.major_intersection||''}</div>
+        </td>
+      </tr>
+      <tr style="background:#f9fafb">
+        <td style="border:1px solid #000;padding:4px 8px"><b>Type:</b> ${l.commodity_type||'FTL'}</td>
+        <td style="border:1px solid #000;padding:4px 8px"><b>Shipping Hours:</b> ${ship.hours||''}</td>
+        <td style="border:1px solid #000;padding:4px 8px"><b>Quantity:</b> ${l.pieces||''}</td>
+        <td style="border:1px solid #000;padding:4px 8px"><b>Appointment:</b> ${ship.appointments?'Yes':'No'}</td>
+      </tr>
+      <tr>
+        <td colspan="2" style="border:1px solid #000;padding:4px 8px"><b>Weight:</b> ${l.weight?Number(l.weight).toLocaleString()+' lbs':''}</td>
+        <td colspan="2" style="border:1px solid #000;padding:4px 8px"><b>Description:</b> ${l.commodity||''} ${l.hazmat?'⚠️ HAZMAT':''}</td>
+      </tr>
+      ${l.pu_notes?`<tr><td colspan="4" style="border:1px solid #000;padding:4px 8px"><b>Notes:</b> ${l.pu_notes}</td></tr>`:''}
+    </table>
+
+    <!-- Consignee section -->
+    <table style="width:100%;border-collapse:collapse;border:1px solid #000;margin-bottom:8px;font-size:11px">
+      <tr style="background:#e5e7eb">
+        <td colspan="4" style="border:1px solid #000;padding:4px 8px;font-weight:700">
+          Consignee 1 &nbsp;&nbsp; Date: ${fSlash(l.del_date)}
+          &nbsp;&nbsp; Purchase Order #: ${l.del_po||''}
+        </td>
+      </tr>
+      <tr>
+        <td colspan="4" style="border:1px solid #000;padding:6px 8px">
+          <div style="font-weight:700">${l.consignee_name||cons.name||''}</div>
+          <div>${l.del_address||cons.address||''}</div>
+          <div>${l.del_city||cons.city||''}, ${l.del_state||cons.state||''}, ${l.del_zip||cons.zip||''}</div>
+          <div>Phone: ${cons.telephone||''}</div>
+          ${cons.contact?`<div>Contact: ${cons.contact}</div>`:''}
+          <div style="margin-top:4px">Time: ${l.del_time||''} &nbsp;&nbsp; Major Intersection: ${cons.major_intersection||''}</div>
+        </td>
+      </tr>
+      <tr style="background:#f9fafb">
+        <td style="border:1px solid #000;padding:4px 8px"><b>Type:</b> ${l.commodity_type||'FTL'}</td>
+        <td style="border:1px solid #000;padding:4px 8px"><b>Receiving Hours:</b> ${cons.hours||''}</td>
+        <td style="border:1px solid #000;padding:4px 8px"><b>Quantity:</b> ${l.pieces||''}</td>
+        <td style="border:1px solid #000;padding:4px 8px"><b>Appointment:</b> ${cons.appointments?'Yes':'No'}</td>
+      </tr>
+      <tr>
+        <td colspan="2" style="border:1px solid #000;padding:4px 8px"><b>Weight:</b> ${l.weight?Number(l.weight).toLocaleString()+' lbs':''}</td>
+        <td colspan="2" style="border:1px solid #000;padding:4px 8px"><b>Description:</b> ${l.commodity||''}</td>
+      </tr>
+      ${l.del_notes?`<tr><td colspan="4" style="border:1px solid #000;padding:4px 8px"><b>Delivery Notes:</b> ${l.del_notes}</td></tr>`:''}
+    </table>
+
+    <!-- Dispatch Notes -->
+    <table style="width:100%;border-collapse:collapse;border:1px solid #000;margin-bottom:8px;font-size:11px">
+      <tr style="background:#e5e7eb">
+        <td style="border:1px solid #000;padding:4px 8px;font-weight:700">Dispatch Notes:</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #000;padding:6px 8px;line-height:1.8">
+          <div>**MUST Fax POD to ${companyFax} or email to ${dispEmail} within 4 hours of delivery or rate reduction of $75 per day may apply**</div>
+          <div>**Any Detention must be approved**</div>
+          <div>**All lumper and accessorial receipts MUST be called in upon delivery and faxed with POD**</div>
+          <div>**Check calls required twice a day while under dispatch, by 1000 CST and 1700 CST**</div>
+          <div>**ALL INVOICES MUST BE SENT TO ${companyEmail} TO AVOID ANY DELAYS IN PAYMENT**</div>
+          <div>**ALL INVOICES SUBMITTED LATER THAN SIXTY (60) DAYS UPON DELIVERY WILL NOT BE ACCEPTED**</div>
+          <div>**RATES ARE CONSIDERED CONFIDENTIAL — DISCLOSING RATE CONFIRMATION TO SHIPPER OR RECEIVER WILL RESULT IN NON PAYMENT**</div>
+          <div>**ANY DAMAGES/SHORTAGES MUST BE DOCUMENTED WITH A DAMAGE/SHORTAGE REPORT**</div>
+          ${l.carrier_advance_notes?`<div style="margin-top:6px;font-weight:700">${l.carrier_advance_notes}</div>`:''}
+          ${l.dispatcher_notes?`<div style="margin-top:4px">${l.dispatcher_notes}</div>`:''}
         </td>
       </tr>
     </table>
 
-    <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+    <!-- Carrier Pay breakdown -->
+    <table style="width:100%;border-collapse:collapse;border:1px solid #000;margin-bottom:12px;font-size:11px">
       <tr>
-        <td style="width:50%;vertical-align:top;padding-right:12px">
-          <div style="background:#fafafa;padding:12px;border-radius:6px;border:1px solid #e2e8f0">
-            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">📍 Pickup</div>
-            <div style="font-weight:700">${blind?'[BLIND SHIPMENT]':l.shipper_name||''}</div>
-            ${!blind?`<div style="font-size:11px;color:#374151">${l.pu_address||''}</div>
-            <div style="font-size:11px;color:#374151">${l.pu_city||''}, ${l.pu_state||''} ${l.pu_zip||''}</div>`:''}
-            <div style="font-size:11px;margin-top:4px"><b>Date:</b> ${fSlash(l.pu_date)} ${l.pu_time||''}</div>
-          </div>
-        </td>
-        <td style="width:50%;vertical-align:top;padding-left:12px">
-          <div style="background:#fafafa;padding:12px;border-radius:6px;border:1px solid #e2e8f0">
-            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🏁 Delivery</div>
-            <div style="font-weight:700">${l.consignee_name||''}</div>
-            <div style="font-size:11px;color:#374151">${l.del_address||''}</div>
-            <div style="font-size:11px;color:#374151">${l.del_city||''}, ${l.del_state||''} ${l.del_zip||''}</div>
-            <div style="font-size:11px;margin-top:4px"><b>Date:</b> ${fSlash(l.del_date)} ${l.del_time||''}</div>
-          </div>
+        <td style="border:1px solid #000;padding:6px 8px">
+          <b>Carrier Pay:</b>
+          Line Haul: $${carrRate.toFixed(2)}${fsc>0?`, Fuel Surcharge: $${fsc.toFixed(2)}`:''}${accAmt>0?`, ${l.accessorial_type||'Accessorial'}: $${accAmt.toFixed(2)}`:''},
+          <b>TOTAL: $${totalCarrPay.toFixed(2)} USD</b>
         </td>
       </tr>
     </table>
 
-    ${l.commodity||l.weight||l.pieces||l.truck_type?`
-    <div style="background:#fafafa;padding:12px;border-radius:6px;border:1px solid #e2e8f0;margin-bottom:16px">
-      <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📦 Load Details</div>
-      <div style="display:flex;gap:24px;flex-wrap:wrap;font-size:12px">
-        ${l.commodity?`<span><b>Commodity:</b> ${l.commodity}</span>`:''}
-        ${l.weight?`<span><b>Weight:</b> ${Number(l.weight).toLocaleString()} lbs</span>`:''}
-        ${l.pieces?`<span><b>Pieces:</b> ${l.pieces}</span>`:''}
-        ${l.truck_type?`<span><b>Equipment:</b> ${l.truck_type}</span>`:''}
-        ${l.hazmat?`<span style="color:#ef4444;font-weight:700">⚠️ HAZMAT</span>`:''}
-        ${l.bol_number?`<span><b>BOL#:</b> ${l.bol_number}</span>`:''}
-      </div>
-    </div>`:''}
-
-    ${l.carrier_advance_notes?`
-    <div style="background:#fffbeb;padding:12px;border-radius:6px;border-left:4px solid #f59e0b;margin-bottom:16px;font-size:11px">
-      <div style="font-weight:700;margin-bottom:4px">📋 Special Instructions</div>
-      <div>${l.carrier_advance_notes}</div>
-    </div>`:''}
-
-    <div style="border-top:2px solid #e2e8f0;padding-top:12px;margin-top:8px;font-size:10px;color:#64748b;text-align:center">
-      By accepting this load, the carrier agrees to the terms and rates stated above.<br>
-      Please sign and return. POD required for payment processing.<br>
-      <b>${companyName}</b> &nbsp;·&nbsp; ${companyPhone}
-    </div>
-  `;
+    <!-- Signature block -->
+    <table style="width:100%;border-collapse:collapse;border:1px solid #000;font-size:11px">
+      <tr>
+        <td style="border:1px solid #000;padding:6px 8px;width:33%">Accepted By: _______________</td>
+        <td style="border:1px solid #000;padding:6px 8px;width:33%">Date: _______________</td>
+        <td style="border:1px solid #000;padding:6px 8px;width:33%">Signature: _______________</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #000;padding:6px 8px">Driver Name: _______________</td>
+        <td style="border:1px solid #000;padding:6px 8px">Cell #: _______________</td>
+        <td style="border:1px solid #000;padding:6px 8px">Truck #: ___ Trailer #: ___</td>
+      </tr>
+    </table>
+    <div style="text-align:center;font-size:10px;margin-top:6px;color:#666">Page 1 of 1</div>
+  </div>`;
 
   $('bg-rc-doc').innerHTML = doc;
   openM('mBGRC');
 }
-function printBGRC() { const d=$('bg-rc-doc'); if(!d)return; const w=window.open('','_blank'); w.document.write(`<html><head><title>Rate Confirmation</title><style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px;color:#000}@media print{body{padding:0}}</style></head><body>${d.innerHTML}</body></html>`); w.document.close(); w.focus(); w.print(); }
+function printBGRC() {
+  const d=$('bg-rc-doc'); if(!d)return;
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>Rate Confirmation - Load ${d.querySelector('b')?.textContent||''}</title><style>
+    body{font-family:Arial,sans-serif;font-size:11px;padding:15px;color:#000;margin:0}
+    table{border-collapse:collapse;width:100%}
+    @media print{body{padding:8px}@page{margin:10mm}}
+  </style></head><body>${d.innerHTML}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(()=>w.print(),300);
+}
 
 // ── INVOICE ───────────────────────────────────────────────────────
 function viewBGInvoice(id) {
@@ -6837,94 +6982,143 @@ function generateBGInvoice() {
 function generateBGInvoiceDoc(l) {
   const entity = l.broker_entity||'Continental Group LLC';
   const isCMR = entity.includes('CMR');
-  const companyName = isCMR ? 'CMR Solutions LLC' : 'Continental Group LLC';
-  const companyAddr = isCMR ? 'PO Box 1404, Melrose Park, IL 60161' : 'P.O. Box 1602, Elk Grove Village, IL 60009';
-  const companyPhone= isCMR ? '(630) 363-4437' : '(847) 533-0990';
-  const companyMC   = 'MC 583592';
+  const companyName  = isCMR ? 'CMR Solutions LLC' : 'Continental Group LLC';
+  const companyAddr  = isCMR ? 'PO Box 1404' : 'PO Box 1602';
+  const companyCity  = isCMR ? 'Melrose Park, IL, USA 60161' : 'Elk Grove Village, IL, USA 60009';
+  const companyPhone = isCMR ? '630-363-4437' : '312-667-7257';
+  const companyFax   = isCMR ? '888-315-9792' : '888-491-8530';
+
   const fSlash = s => { if(!s)return''; try{const d=new Date(s+'T00:00:00');return`${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`;}catch{return s;} };
   const cust = bgCustomers.find(x=>x.id===l.customer_id)||{};
-  const invNum = l.invoice_number || '(new)';
-  const today = localDate();
+  const ship = bgShippers.find(x=>x.id===l.shipper_id)||{};
+  const cons = bgConsignees.find(x=>x.id===l.consignee_id)||{};
+  const invNum = l.invoice_number || '(pending)';
+  const invDate = fSlash(l.invoice_date || localDate());
   const terms = l.payment_terms||'Net 30';
-  const days = parseInt(terms.replace(/\D/g,''))||30;
-  const dueDate = new Date(today+'T00:00:00'); dueDate.setDate(dueDate.getDate()+days);
-  const dueDateStr = `${dueDate.getMonth()+1}/${dueDate.getDate()}/${dueDate.getFullYear()}`;
-  const totalAmt = (parseFloat(l.customer_rate)||0)+(parseFloat(l.accessorial_amount)||0)+(parseFloat(l.fuel_surcharge)||0);
+  const custRate = parseFloat(l.customer_rate)||0;
+  const accAmt   = parseFloat(l.accessorial_amount)||0;
+  const fsc      = parseFloat(l.fuel_surcharge)||0;
+  const totalAmt = custRate + accAmt + fsc;
+
+  // Bill to address
+  const billAddr   = cust.billing_address || cust.address || '';
+  const billCity   = cust.billing_city    || cust.city    || '';
+  const billState  = cust.billing_state   || cust.state   || '';
+  const billZip    = cust.billing_zip     || cust.zip     || '';
 
   const doc = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1d4ed8;padding-bottom:16px;margin-bottom:20px">
-      <div>
-        <div style="font-size:22px;font-weight:900;color:#1d4ed8;letter-spacing:1px">${companyName}</div>
-        <div style="font-size:11px;color:#64748b;margin-top:4px">${companyAddr}</div>
-        <div style="font-size:11px;color:#64748b">${companyPhone} &nbsp;·&nbsp; ${companyMC}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:20px;font-weight:900;color:#1e293b">INVOICE</div>
-        <div style="font-size:12px;color:#475569;margin-top:4px">Invoice # <b>${invNum}</b></div>
-        <div style="font-size:11px;color:#64748b">Load # ${l.load_number||''}</div>
-        <div style="font-size:11px;color:#64748b">Date: ${fSlash(today)}</div>
-        <div style="font-size:11px;color:#64748b">Due: ${dueDateStr}</div>
+  <div style="font-family:Arial,sans-serif;font-size:11px;color:#000;max-width:780px;margin:0 auto">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+      <div style="font-size:18px;font-weight:900">INVOICE # ${invNum}</div>
+      <div style="text-align:right;font-size:11px">
+        <div>Invoice Date: ${invDate}</div>
+        <div>Terms: ${terms}</div>
+        <div>W/O (Ref): ${l.wo_number||l.ref_number||''}</div>
       </div>
     </div>
+    <div style="text-align:center;font-size:16px;font-weight:700;border-top:2px solid #000;border-bottom:2px solid #000;padding:4px 0;margin-bottom:12px">Invoice</div>
 
-    <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+    <!-- Bill To -->
+    <div style="margin-bottom:12px">
+      <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">BILL TO:</div>
+      <div style="font-weight:700">${l.customer_name||''}</div>
+      ${billAddr?`<div>${billAddr}</div>`:''}
+      ${billCity?`<div>${billCity}, ${billState}, USA ${billZip}</div>`:''}
+    </div>
+
+    <!-- Load Details header -->
+    <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid #000;padding-top:6px;margin-bottom:6px">LOAD DETAILS</div>
+    <div style="margin-bottom:4px"><b>LOAD #:</b> ${l.load_number||''}</div>
+
+    <!-- Shipper details -->
+    <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:6px">
       <tr>
-        <td style="width:50%;vertical-align:top;padding-right:12px">
-          <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Bill To</div>
-          <div style="font-weight:700;font-size:13px">${l.customer_name||''}</div>
-          ${cust.billing_address||cust.address?`<div style="font-size:11px">${cust.billing_address||cust.address||''}</div>`:''}
-          ${cust.billing_city||cust.city?`<div style="font-size:11px">${cust.billing_city||cust.city||''}, ${cust.billing_state||cust.state||''} ${cust.billing_zip||cust.zip||''}</div>`:''}
-          ${cust.billing_email||cust.email?`<div style="font-size:11px;color:#475569">${cust.billing_email||cust.email||''}</div>`:''}
+        <td style="padding:3px 0;vertical-align:top;width:60%">
+          <b>Shipper 1:</b> ${l.shipper_name||ship.name||''},
+          ${l.pu_address||ship.address||''},
+          ${l.pu_city||ship.city||''},
+          ${l.pu_state||ship.state||''},
+          ${l.pu_zip||ship.zip?'USA,':''}
+          ${l.pu_zip||ship.zip||''}
         </td>
-        <td style="width:50%;vertical-align:top;padding-left:12px;text-align:right">
-          <div style="background:#f0fdf4;padding:12px;border-radius:6px;display:inline-block;min-width:160px">
-            <div style="font-size:11px;color:#64748b">Terms: ${terms}</div>
-            <div style="font-size:24px;font-weight:900;color:#16a34a;margin-top:4px">${f$(totalAmt)}</div>
-            <div style="font-size:11px;color:#16a34a">DUE ${dueDateStr}</div>
-          </div>
+        <td style="padding:3px 0;text-align:right">Date: ${fSlash(l.pu_date)}</td>
+      </tr>
+    </table>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:6px">
+      <tr>
+        <td style="padding:2px 0"><b>Type:</b> ${l.commodity_type||'FTL'}</td>
+        <td style="padding:2px 0"><b>Quantity:</b> ${l.pieces||''}</td>
+        <td style="padding:2px 0"><b>Weight:</b> ${l.weight?Number(l.weight).toLocaleString():''}</td>
+      </tr>
+      ${l.commodity?`<tr><td colspan="3" style="padding:2px 0"><b>Description:</b> ${l.commodity}</td></tr>`:''}
+      ${l.ref_number?`<tr><td colspan="3" style="padding:2px 0;font-size:10px"><b>Purchase Order #:</b> ${l.ref_number}</td></tr>`:''}
+    </table>
+
+    <!-- Consignee details -->
+    <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:6px">
+      <tr>
+        <td style="padding:3px 0;vertical-align:top;width:60%">
+          <b>Consignee 1:</b> ${l.consignee_name||cons.name||''},
+          ${l.del_address||cons.address||''},
+          ${l.del_city||cons.city||''},
+          ${l.del_state||cons.state||''},
+          ${l.del_zip||cons.zip?'USA,':''}
+          ${l.del_zip||cons.zip||''}
         </td>
+        <td style="padding:3px 0;text-align:right">Date: ${fSlash(l.del_date)}</td>
+      </tr>
+    </table>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px">
+      <tr>
+        <td style="padding:2px 0"><b>Type:</b> ${l.commodity_type||'FTL'}</td>
+        <td style="padding:2px 0"><b>Quantity:</b> ${l.pieces||''}</td>
+        <td style="padding:2px 0"><b>Weight:</b> ${l.weight?Number(l.weight).toLocaleString():''}</td>
+      </tr>
+      ${l.commodity?`<tr><td colspan="3" style="padding:2px 0"><b>Description:</b> ${l.commodity}</td></tr>`:''}
+    </table>
+
+    <!-- Rates & Charges -->
+    <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid #000;padding-top:6px;margin-bottom:6px">RATES AND CHARGES</div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <tr>
+        <td style="padding:3px 0">Line Haul</td>
+        <td style="padding:3px 0;text-align:right">$${custRate.toFixed(2)}</td>
+      </tr>
+      ${fsc>0?`<tr><td style="padding:3px 0">Fuel Surcharge</td><td style="padding:3px 0;text-align:right">$${fsc.toFixed(2)}</td></tr>`:''}
+      ${accAmt>0?`<tr><td style="padding:3px 0">${l.accessorial_type||'Accessorial'}</td><td style="padding:3px 0;text-align:right">$${accAmt.toFixed(2)}</td></tr>`:''}
+      <tr style="border-top:1px solid #000">
+        <td style="padding:4px 0;font-weight:700">Total Rate:</td>
+        <td style="padding:4px 0;text-align:right;font-weight:700">$${totalAmt.toFixed(2)} USD</td>
       </tr>
     </table>
 
-    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px">
-      <thead>
-        <tr style="background:#f1f5f9">
-          <th style="padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:#64748b;border-bottom:1px solid #e2e8f0">Description</th>
-          <th style="padding:8px 10px;text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:#64748b;border-bottom:1px solid #e2e8f0">Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td style="padding:10px;border-bottom:1px solid #f1f5f9">
-            <div style="font-weight:600">Freight Transportation Services</div>
-            <div style="font-size:11px;color:#475569">From: ${l.shipper_name||l.pu_city||''} ${l.pu_state?'('+l.pu_state+')':''}</div>
-            <div style="font-size:11px;color:#475569">To: ${l.consignee_name||l.del_city||''} ${l.del_state?'('+l.del_state+')':''}</div>
-            ${l.pu_date||l.del_date?`<div style="font-size:11px;color:#475569">Ship: ${fSlash(l.pu_date)} → Del: ${fSlash(l.del_date)}</div>`:''}
-            ${l.commodity?`<div style="font-size:11px;color:#475569">Commodity: ${l.commodity}</div>`:''}
-            ${l.bol_number?`<div style="font-size:11px;color:#475569">BOL #: ${l.bol_number}</div>`:''}
-            ${l.ref_number?`<div style="font-size:11px;color:#475569">Ref #: ${l.ref_number}</div>`:''}
-          </td>
-          <td style="padding:10px;text-align:right;border-bottom:1px solid #f1f5f9;font-weight:600">${f$(l.customer_rate)}</td>
-        </tr>
-        ${parseFloat(l.fuel_surcharge)>0?`<tr><td style="padding:8px 10px;border-bottom:1px solid #f1f5f9">Fuel Surcharge</td><td style="padding:8px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${f$(l.fuel_surcharge)}</td></tr>`:''}
-        ${parseFloat(l.accessorial_amount)>0?`<tr><td style="padding:8px 10px;border-bottom:1px solid #f1f5f9">${l.accessorial_type||'Accessorial'}</td><td style="padding:8px 10px;text-align:right;border-bottom:1px solid #f1f5f9">${f$(l.accessorial_amount)}</td></tr>`:''}
-        <tr style="background:#f0fdf4">
-          <td style="padding:10px;font-weight:700;font-size:14px">TOTAL DUE</td>
-          <td style="padding:10px;text-align:right;font-weight:900;font-size:16px;color:#16a34a">${f$(totalAmt)}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div style="text-align:center;font-size:10px;margin:8px 0;color:#666">Page 1 of 1</div>
 
-    <div style="font-size:10px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:10px">
-      Please remit payment by ${dueDateStr}. Reference Invoice # ${invNum} on your payment.<br>
-      Questions? Contact us at ${companyPhone}
+    <!-- Payable To -->
+    <div style="border-top:2px solid #000;padding-top:8px;margin-top:8px">
+      <div style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">PAYABLE TO:</div>
+      <div style="font-weight:700">${companyName}</div>
+      <div>${companyAddr}</div>
+      <div>${companyCity}</div>
+      <div>Phone: ${companyPhone}</div>
+      <div>Fax: ${companyFax}</div>
     </div>
-  `;
+  </div>`;
 
   $('bg-inv-doc').innerHTML = doc;
   openM('mBGInvoice');
 }
-function printBGInvoice() { const d=$('bg-inv-doc'); if(!d)return; const w=window.open('','_blank'); w.document.write(`<html><head><title>Invoice</title><style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px;color:#000}@media print{body{padding:0}}</style></head><body>${d.innerHTML}</body></html>`); w.document.close(); w.focus(); w.print(); }
+function printBGInvoice() {
+  const d=$('bg-inv-doc'); if(!d)return;
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>Invoice</title><style>
+    body{font-family:Arial,sans-serif;font-size:11px;padding:15px;color:#000;margin:0}
+    table{border-collapse:collapse;width:100%}
+    @media print{body{padding:8px}@page{margin:10mm}}
+  </style></head><body>${d.innerHTML}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(()=>w.print(),300);
+}
 
 // ── CUSTOMERS TABLE ───────────────────────────────────────────────
 function sortBGCust(col) { bgCustSort.dir=bgCustSort.col===col?bgCustSort.dir*-1:1; bgCustSort.col=col; renderBGCustomers(); }
@@ -6968,7 +7162,7 @@ function bgInsuranceBadge(expiry) {
   return `<span style="color:var(--green);font-size:10px">${exp}</span>`;
 }
 
-function sortBGCarr(col){bgCarrSort.dir=bgCarrSort.col===col?bgCarrSort.dir*-1:1;bgCarrSort.col=col;renderBGCarriers();}
+function sortBGCarr(col){bgCarrSort.dir=bgCarrSort.col===col?bgCarrSort.dir*-1:1;bgCarrSort.col=col;bgCarrPage=0;renderBGCarriers();}
 function renderBGCarriers() {
   const q  = ($('bgcarr-q')?.value||'').toLowerCase();
   const tm = $('bgcarr-terms')?.value||'';
@@ -6996,7 +7190,9 @@ function renderBGCarriers() {
   `;
 
   const tb=$('bgcarr-tb');if(!tb)return;
-  tb.innerHTML=ls.slice(0,500).map(c=>{
+  const carrSlice = ls.slice(bgCarrPage*BG_PAGE_SIZE, (bgCarrPage+1)*BG_PAGE_SIZE);
+  const carrHasMore = ls.length > (bgCarrPage+1)*BG_PAGE_SIZE;
+  tb.innerHTML=carrSlice.map(c=>{
     const cargoExp = c.cargo_ins_expiry ? String(c.cargo_ins_expiry).slice(0,10) : '';
     const days = cargoExp ? Math.round((new Date(cargoExp+'T00:00:00')-new Date())/86400000) : 999;
     const rowBg = c.blacklisted ? 'background:rgba(239,68,68,.07)' : days<=7&&days>=0 ? 'background:rgba(239,68,68,.05)' : '';
@@ -7009,7 +7205,7 @@ function renderBGCarriers() {
       <td style="font-size:11px">${c.pay_term||'Net 30'}</td>
       <td style="font-size:11px">${c.cargo_ins_amount?'$'+Number(c.cargo_ins_amount).toLocaleString():'—'}</td>
       <td>${bgInsuranceBadge(c.cargo_ins_expiry)}</td>
-      <td>${c.blacklisted?'<span style="color:var(--red);font-weight:700">⛔ Blacklisted</span>':'<span style="color:var(--green)">✓ Active</span>'}</td>
+      <td>${c.blacklisted?'<span style="color:var(--red);font-weight:700">⛔ Blacklisted</span>':c.active===0?'<span style="color:var(--orange);font-weight:700">⚠ Incomplete</span>':'<span style="color:var(--green)">✓ Active</span>'}</td>
       <td style="display:flex;gap:4px">
         <button class="edit-btn" onclick="openBGCarrier(${c.id})">✏</button>
         <button class="edit-btn" onclick="openBGCarrierFiles(${c.id},'${(c.name||'').replace(/'/g,"\\'")}')">📎</button>
@@ -7019,7 +7215,7 @@ function renderBGCarriers() {
 }
 function openBGCarrier(id){
   const c=bgCarriers.find(x=>x.id===id)||{};
-  $('mBGCarrier-title').textContent=id?'✏ Edit Carrier':'+ New Carrier';
+  $('mBGCarrier-title').textContent=id?'✏ Edit External Carrier':'+ New External Carrier';
   $('bgcr_id').value=c.id||''; $('bgcr_name').value=c.name||'';
   $('bgcr_mc').value=c.mc_number||''; $('bgcr_dot').value=c.dot_number||'';
   $('bgcr_tax').value=c.tax_id||''; $('bgcr_trucks').value=c.truck_count||'';
@@ -7037,17 +7233,8 @@ function openBGCarrier(id){
   $('bgcr_notes').value=c.notes||'';
   openM('mBGCarrier');
 }
-async function saveBGCarrier(){
-  const id=$('bgcr_id')?.value;
-  const payload={name:$('bgcr_name')?.value,address:$('bgcr_addr')?.value,city:$('bgcr_city')?.value,state:$('bgcr_state')?.value,zip:$('bgcr_zip')?.value,contact:$('bgcr_contact')?.value,telephone:$('bgcr_phone')?.value,email:$('bgcr_email')?.value,mc_number:$('bgcr_mc')?.value,dot_number:$('bgcr_dot')?.value,tax_id:$('bgcr_tax')?.value,pay_term:$('bgcr_terms')?.value,factoring_company:$('bgcr_factor')?.value,cargo_ins_amount:parseFloat($('bgcr_cargo_amt')?.value)||null,cargo_ins_expiry:$('bgcr_cargo_exp')?.value||null,liability_ins_amount:parseFloat($('bgcr_liab_amt')?.value)||null,liability_ins_expiry:$('bgcr_liab_exp')?.value||null,notes:$('bgcr_notes')?.value,blacklisted:parseInt($('bgcr_bl')?.value)||0};
-  if(!payload.name){toast('Name required',true);return;}
-  const r=id?await api.put('/api/bg/carriers/'+id,payload):await api.post('/api/bg/carriers',payload);
-  if(r.ok){if(id){const i=bgCarriers.findIndex(x=>x.id===parseInt(id));if(i>=0)bgCarriers[i]={...bgCarriers[i],...payload};}else bgCarriers.push({...payload,id:r.id});closeM('mBGCarrier');toast('Saved ✓');renderBGCarriers();}
-  else toast('Error: '+(r.error||''),true);
-}
-
 // ── SHIPPERS TABLE ────────────────────────────────────────────────
-function sortBGShip(col){bgShipSort.dir=bgShipSort.col===col?bgShipSort.dir*-1:1;bgShipSort.col=col;renderBGShippers();}
+function sortBGShip(col){bgShipSort.dir=bgShipSort.col===col?bgShipSort.dir*-1:1;bgShipSort.col=col;bgShipPage=0;renderBGShippers();}
 function openBGShipper(id){
   const s=bgShippers.find(x=>x.id===id)||{};
   $('mBGLocation-title').textContent=id?'✏ Edit Shipper':'+ New Shipper';
@@ -7063,7 +7250,7 @@ function openBGShipper(id){
 }
 
 // ── CONSIGNEES TABLE ──────────────────────────────────────────────
-function sortBGCons(col){bgConsSort.dir=bgConsSort.col===col?bgConsSort.dir*-1:1;bgConsSort.col=col;renderBGConsignees();}
+function sortBGCons(col){bgConsSort.dir=bgConsSort.col===col?bgConsSort.dir*-1:1;bgConsSort.col=col;bgConsPage=0;renderBGConsignees();}
 function openBGConsignee(id){
   const c=bgConsignees.find(x=>x.id===id)||{};
   $('mBGLocation-title').textContent=id?'✏ Edit Consignee':'+ New Consignee';
@@ -7093,46 +7280,123 @@ async function saveBGLocation(){
 }
 
 // ── INVOICES ──────────────────────────────────────────────────────
+// ── ACCOUNTING MANAGER ───────────────────────────────────────────
+let _acctTab = 'delivered';
+
+function switchAcctTab(tab) {
+  _acctTab = tab;
+  document.querySelectorAll('.acct-tab').forEach(b => {
+    const active = b.dataset.tab === tab;
+    b.style.background = active ? 'var(--bg3)' : 'var(--bg4)';
+    b.style.fontWeight  = active ? '700' : '400';
+    b.style.color       = active ? 'var(--text)' : 'var(--text2)';
+  });
+  renderBGInvoices();
+}
+
 function sortBGInv(col){bgInvSort.dir=bgInvSort.col===col?bgInvSort.dir*-1:1;bgInvSort.col=col;renderBGInvoices();}
+
 function renderBGInvoices(){
-  const q=($('bginv-q')?.value||'').toLowerCase();
-  const st=$('bginv-st')?.value||'';
-  const fr=$('bginv-from')?.value||'';
-  const to=$('bginv-to')?.value||'';
-  let ls=[...bgInvoices];
-  if(q)ls=ls.filter(i=>[i.invoice_number,i.customer_name,i.load_number].join(' ').toLowerCase().includes(q));
-  if(st)ls=ls.filter(i=>i.status===st);
-  if(fr)ls=ls.filter(i=>(i.invoice_date||'')>=fr);
-  if(to)ls=ls.filter(i=>(i.invoice_date||'')<=to);
-  ls.sort((a,b)=>bgInvSort.dir*String(a[bgInvSort.col]||'').localeCompare(String(b[bgInvSort.col]||'')));
-  const totAR=ls.filter(i=>i.status!=='Paid').reduce((s,i)=>s+(parseFloat(i.total)||0),0);
-  const totPaid=ls.filter(i=>i.status==='Paid').reduce((s,i)=>s+(parseFloat(i.total)||0),0);
+  const q     = ($('acct-q')?.value||'').toLowerCase();
+  const field = $('acct-search-field')?.value||'all';
+  const fr    = $('bginv-from')?.value||'';
+  const to    = $('bginv-to')?.value||'';
+  const today = localDate();
+
+  // Get loads for accounting manager (uses bgLoads not bgInvoices for richer data)
+  let ls = [...bgLoads];
+
+  // Tab filter
+  if (_acctTab === 'delivered')  ls = ls.filter(l => l.status === 'Delivered');
+  if (_acctTab === 'completed')  ls = ls.filter(l => ['Delivered','Cancelled'].includes(l.status));
+  if (_acctTab === 'invoiced')   ls = ls.filter(l => l.invoice_number && l.invoice_status !== 'Paid');
+  if (_acctTab === 'invpaid')    ls = ls.filter(l => l.invoice_number && l.invoice_status === 'Paid');
+
+  // Date filter on pu_date
+  if (fr) ls = ls.filter(l => (l.pu_date||'') >= fr);
+  if (to) ls = ls.filter(l => (l.pu_date||'') <= to);
+
+  // Search filter
+  if (q) {
+    ls = ls.filter(l => {
+      if (field === 'load_number')    return String(l.load_number||'').toLowerCase().includes(q);
+      if (field === 'invoice_number') return String(l.invoice_number||'').toLowerCase().includes(q);
+      if (field === 'customer')       return (l.customer_name||'').toLowerCase().includes(q);
+      if (field === 'carrier')        return (l.carrier_name||'').toLowerCase().includes(q);
+      if (field === 'dispatcher')     return (l.sales_rep||l.dispatcher||'').toLowerCase().includes(q);
+      if (field === 'wo_number')      return String(l.wo_number||'').toLowerCase().includes(q);
+      if (field === 'shipper')        return (l.shipper_name||'').toLowerCase().includes(q);
+      if (field === 'origin_city')    return (l.pu_city||'').toLowerCase().includes(q);
+      if (field === 'origin_state')   return (l.pu_state||'').toLowerCase().includes(q);
+      if (field === 'po_numbers')     return (l.ref_number||'').toLowerCase().includes(q);
+      if (field === 'consignee')      return (l.consignee_name||'').toLowerCase().includes(q);
+      if (field === 'dest_city')      return (l.del_city||'').toLowerCase().includes(q);
+      if (field === 'dest_state')     return (l.del_state||'').toLowerCase().includes(q);
+      return [l.load_number,l.invoice_number,l.customer_name,l.carrier_name,l.shipper_name,l.consignee_name,l.pu_city,l.del_city,l.ref_number,l.wo_number].join(' ').toLowerCase().includes(q);
+    });
+  }
+
+  // Sort
+  ls.sort((a,b) => {
+    const av = a[bgInvSort.col]||'', bv = b[bgInvSort.col]||'';
+    return bgInvSort.dir * (typeof av==='number' ? av-bv : String(av).localeCompare(String(bv)));
+  });
+
+  // KPIs
+  const totAmt  = ls.reduce((s,l)=>s+(parseFloat(l.customer_rate)||0),0);
+  const totPaid = ls.filter(l=>l.invoice_status==='Paid').reduce((s,l)=>s+(parseFloat(l.customer_rate)||0),0);
+  const totAR   = totAmt - totPaid;
   if($('bginv-kpis'))$('bginv-kpis').innerHTML=`
-    <div class="kpi blue" style="padding:10px 14px"><div class="kpi-label" style="font-size:10px">Total Invoices</div><div class="kpi-value" style="font-size:18px">${ls.length}</div></div>
-    <div class="kpi red" style="padding:10px 14px"><div class="kpi-label" style="font-size:10px">AR Outstanding</div><div class="kpi-value" style="font-size:18px">${f$(totAR)}</div></div>
-    <div class="kpi green" style="padding:10px 14px"><div class="kpi-label" style="font-size:10px">Collected</div><div class="kpi-value" style="font-size:18px">${f$(totPaid)}</div></div>
+    <div class="kpi blue"  style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Loads</div><div class="kpi-value" style="font-size:16px">${ls.length}</div></div>
+    <div class="kpi green" style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Total Revenue</div><div class="kpi-value" style="font-size:16px">${f$(totAmt)}</div></div>
+    <div class="kpi red"   style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">AR Outstanding</div><div class="kpi-value" style="font-size:16px">${f$(totAR)}</div></div>
+    <div class="kpi teal"  style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Collected</div><div class="kpi-value" style="font-size:16px">${f$(totPaid)}</div></div>
   `;
-  if($('bginv-cnt'))$('bginv-cnt').textContent=ls.length+' invoices';
-  const STK={'Draft':'#6b7280','Sent':'#3b82f6','Paid':'#22c55e','Partial':'#f59e0b','Overdue':'#ef4444','Void':'#94a3b8'};
-  const tb=$('bginv-tb');if(!tb)return;
-  tb.innerHTML=ls.map(i=>{
-    const bal=(parseFloat(i.total)||0)-(parseFloat(i.payment_received)||0);
-    return`<tr>
-      <td style="font-weight:700;color:var(--blue)">${i.invoice_number||'—'}</td>
-      <td>${i.load_number||'—'}</td>
-      <td style="font-weight:600">${i.customer_name||'—'}</td>
-      <td>${i.invoice_date?String(i.invoice_date).slice(0,10):'—'}</td>
-      <td>${i.due_date?String(i.due_date).slice(0,10):'—'}</td>
-      <td style="font-weight:600">${f$(i.total)}</td>
-      <td style="color:var(--green)">${f$(i.payment_received)}</td>
-      <td style="font-weight:700;color:${bal>0?'var(--red)':'var(--green)'}">${f$(bal)}</td>
-      <td><span style="background:${STK[i.status]||'#6b7280'}22;color:${STK[i.status]||'#6b7280'};padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700">${i.status}</span></td>
-      <td style="display:flex;gap:4px">
-        <button class="edit-btn" onclick="viewBGInvoice(${i.load_id})" title="View Invoice">🧾</button>
-        ${i.qb_exported?'<span style="color:var(--green);font-size:10px">QB✓</span>':''}
+  if($('bginv-cnt'))$('bginv-cnt').textContent = ls.length+' loads';
+
+  const tb=$('bginv-tb'); if(!tb)return;
+  if(!ls.length){tb.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">No records for this view</td></tr>`;return;}
+
+  // Aging = days since pu_date
+  tb.innerHTML = ls.map(l => {
+    const aging = l.pu_date ? Math.max(0,Math.round((new Date()-new Date(l.pu_date+'T00:00:00'))/86400000)) : '';
+    const isPaid = l.invoice_status==='Paid';
+    const hasInv = !!l.invoice_number;
+    const isExported = l.qb_exported;
+    const rowBg = isExported ? 'background:#d1fae522' : '';
+    const agingColor = aging > 60 ? 'color:var(--red);font-weight:700' : aging > 30 ? 'color:var(--orange)' : '';
+    return `<tr style="${rowBg}cursor:pointer" onclick="editBGLoad(${l.id})">
+      <td style="font-weight:700;color:var(--blue)">${l.load_number}</td>
+      <td style="font-size:11px">${l.invoice_number||'<span style="color:var(--text3)">—</span>'}</td>
+      <td style="font-size:11px">${l.invoice_date?String(l.invoice_date).slice(0,10):'—'}</td>
+      <td style="font-weight:600">${l.customer_name||'—'}</td>
+      <td style="font-size:11px">${l.carrier_name||'—'}</td>
+      <td>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer" onclick="event.stopPropagation()">
+          <input type="checkbox" ${isPaid?'checked':''} onchange="markBGPaid(${l.id},this.checked)" style="cursor:pointer">
+          <span style="font-size:10px;color:${isPaid?'var(--green)':'var(--text3)'}">${isPaid?'Paid':'Mark Paid'}</span>
+        </label>
+      </td>
+      <td style="font-size:11px;${agingColor}">${aging}</td>
+      <td style="display:flex;gap:4px;align-items:center">
+        <button class="edit-btn" onclick="event.stopPropagation();editBGLoad(${l.id})" title="Edit">✏</button>
+        <button class="edit-btn" onclick="event.stopPropagation();viewBGInvoice(${l.id})" title="Invoice" style="color:var(--green)">🧾</button>
+        <button class="edit-btn" onclick="event.stopPropagation();viewBGRC(${l.id})" title="Rate Con" style="color:var(--blue)">📄</button>
+        ${isExported?'<span style="font-size:9px;color:var(--green)">QB✓</span>':''}
       </td>
     </tr>`;
   }).join('');
+}
+
+async function markBGPaid(loadId, paid) {
+  const l = bgLoads.find(x=>x.id===loadId); if(!l)return;
+  const status = paid ? 'Paid' : 'Invoiced';
+  await api.patch(`/api/bg/loads/${loadId}/status`, {status: l.status}); // keep load status
+  // Update invoice status
+  await api.put(`/api/bg/loads/${loadId}`, {...l, invoice_status: status});
+  if(l) l.invoice_status = status;
+  toast(paid ? 'Marked as Paid ✓' : 'Marked unpaid');
+  renderBGInvoices();
 }
 
 // ── CARRIER PAY ───────────────────────────────────────────────────
@@ -7313,7 +7577,9 @@ function renderBGShippers() {
     <div class="kpi teal" style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Appt Required</div><div class="kpi-value" style="font-size:16px">${bgShippers.filter(s=>s.appointments).length}</div></div>
   `;
   const tb=$('bgship-tb');if(!tb)return;
-  tb.innerHTML=ls.slice(0,300).map(s=>`<tr style="cursor:pointer" onclick="showBGLocationDetail('shippers',${s.id})">
+  const shipSlice=ls.slice(bgShipPage*BG_PAGE_SIZE,(bgShipPage+1)*BG_PAGE_SIZE);
+  const shipMore=ls.length>(bgShipPage+1)*BG_PAGE_SIZE;
+  tb.innerHTML=shipSlice.map(s=>`<tr style="cursor:pointer" onclick="showBGLocationDetail('shippers',${s.id})">
     <td style="font-weight:600">${s.name||''}</td>
     <td style="font-size:11px">${s.address||'—'}</td>
     <td>${s.city||'—'}</td><td>${s.state||'—'}</td><td>${s.zip||'—'}</td>
@@ -7339,7 +7605,9 @@ function renderBGConsignees() {
     <div class="kpi teal" style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Appt Required</div><div class="kpi-value" style="font-size:16px">${bgConsignees.filter(c=>c.appointments).length}</div></div>
   `;
   const tb=$('bgcons-tb');if(!tb)return;
-  tb.innerHTML=ls.slice(0,300).map(c=>`<tr style="cursor:pointer" onclick="showBGLocationDetail('consignees',${c.id})">
+  const consSlice=ls.slice(bgConsPage*BG_PAGE_SIZE,(bgConsPage+1)*BG_PAGE_SIZE);
+  const consMore=ls.length>(bgConsPage+1)*BG_PAGE_SIZE;
+  tb.innerHTML=consSlice.map(c=>`<tr style="cursor:pointer" onclick="showBGLocationDetail('consignees',${c.id})">
     <td style="font-weight:600">${c.name||''}</td>
     <td style="font-size:11px">${c.address||'—'}</td>
     <td>${c.city||'—'}</td><td>${c.state||'—'}</td><td>${c.zip||'—'}</td>
@@ -7527,7 +7795,7 @@ function switchCRTab(tabId) {
 // Override openBGCarrier with full tabbed version
 function openBGCarrier(id){
   const c=bgCarriers.find(x=>x.id===id)||{};
-  $('mBGCarrier-title').textContent=id?'✏ Edit Carrier':'+ New Carrier';
+  $('mBGCarrier-title').textContent=id?'✏ Edit External Carrier':'+ New External Carrier';
   switchCRTab('cr-account');
   // Account tab
   $('bgcr_id').value=c.id||'';
@@ -7641,11 +7909,32 @@ async function saveBGCarrier(){
     notes:$('bgcr_notes')?.value,
   };
   if(!payload.name){toast('Carrier name required',true);return;}
+
+  // Check mandatory fields for activation
+  const missing=[];
+  if(!payload.mc_number)            missing.push('MC #');
+  if(!payload.dot_number)           missing.push('DOT #');
+  if(!payload.tax_id)               missing.push('EIN / Tax ID');
+  if(!payload.liability_ins_policy) missing.push('Liability Insurance Policy #');
+  if(!payload.liability_ins_expiry) missing.push('Liability Insurance Expiry Date');
+  if(!payload.cargo_ins_policy)     missing.push('Cargo Insurance Policy #');
+  if(!payload.cargo_ins_expiry)     missing.push('Cargo Insurance Expiry Date');
+
+  const canDispatch = missing.length===0 && !payload.blacklisted;
+  payload.active = canDispatch ? 1 : 0;
+
+  if(missing.length>0){
+    const go=confirm(`⚠️ Carrier will be saved as INACTIVE — cannot be dispatched until:\n\n• ${missing.join('\n• ')}\n\nSave anyway?`);
+    if(!go) return;
+  }
+
   const r=id?await api.put('/api/bg/carriers/'+id,payload):await api.post('/api/bg/carriers',payload);
   if(r.ok){
     if(id){const i=bgCarriers.findIndex(x=>x.id===parseInt(id));if(i>=0)bgCarriers[i]={...bgCarriers[i],...payload};}
     else bgCarriers.push({...payload,id:r.id});
-    closeM('mBGCarrier');toast('Carrier saved ✓');renderBGCarriers();
+    closeM('mBGCarrier');
+    toast(canDispatch ? 'Carrier saved ✓ — Active' : `Saved ⚠️ Inactive — ${missing.length} mandatory field(s) missing`);
+    renderBGCarriers();
   } else toast('Error: '+(r.error||''),true);
 }
 </script></body></html>
