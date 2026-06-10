@@ -1261,7 +1261,22 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
 
 <div class="page" id="page-bg-dispatch">
   <div class="fbar">
-    <input type="search" id="bg-q" placeholder="🔍 Search loads, carrier, customer…" oninput="renderBGBoard()">
+    <select id="bg-sf" style="font-size:11px;padding:4px 6px;background:var(--bg4);border:1px solid var(--border2);border-radius:5px;color:var(--text)">
+      <option value="all">Search All</option>
+      <option value="load_number">Load #</option>
+      <option value="customer_name">Customer</option>
+      <option value="carrier_name">Carrier</option>
+      <option value="shipper_name">Shipper</option>
+      <option value="consignee_name">Consignee</option>
+      <option value="pu_city">Origin City</option>
+      <option value="del_city">Dest City</option>
+      <option value="pu_state">Origin State</option>
+      <option value="del_state">Dest State</option>
+      <option value="sales_rep">Sales Rep</option>
+      <option value="wo_number">W/O #</option>
+      <option value="ref_number">PO #</option>
+    </select>
+    <input type="search" id="bg-q" placeholder="🔍 Search…" oninput="bgCarrPage=0;renderBGBoard()">
     <select id="bg-st" onchange="renderBGBoard()">
       <option value="">All Status</option>
       <option>Pending</option><option>Open</option><option>Covered</option>
@@ -1280,28 +1295,25 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
     <span id="bg-cnt" style="font-size:11px;color:var(--text3)"></span>
     <button class="btn btn-primary btn-sm" onclick="openNewBGLoad()" style="margin-left:auto">+ New Load</button>
   </div>
-  <!-- KPI strip -->
   <div id="bg-kpis" class="kpi-grid" style="margin-bottom:10px"></div>
-  <!-- Board -->
   <div class="card">
     <div class="card-body tw" style="max-height:calc(100vh - 280px);overflow-y:auto">
       <table>
         <thead><tr>
           <th onclick="sortBG('load_number')" style="cursor:pointer">Load #↕</th>
           <th>W/O #</th>
-          <th onclick="sortBG('created_at')" style="cursor:pointer">Date↕</th>
-          <th onclick="sortBG('customer_name')" style="cursor:pointer">Customer↕</th>
-          <th onclick="sortBG('carrier_name')" style="cursor:pointer">Carrier↕</th>
-          <th>Origin</th>
-          <th>Destination</th>
           <th onclick="sortBG('pu_date')" style="cursor:pointer">Ship↕</th>
           <th onclick="sortBG('del_date')" style="cursor:pointer">Del↕</th>
+          <th onclick="sortBG('customer_name')" style="cursor:pointer">Customer↕</th>
+          <th onclick="sortBG('carrier_name')" style="cursor:pointer">Driver/Carrier↕</th>
+          <th>Origin</th>
+          <th>Destination</th>
           <th onclick="sortBG('customer_rate')" style="cursor:pointer">Cust $↕</th>
           <th onclick="sortBG('carrier_rate')" style="cursor:pointer">Carrier $↕</th>
           <th onclick="sortBG('gross_profit')" style="cursor:pointer">Profit↕</th>
           <th>Rep</th>
-          <th>Status</th>
-          <th style="width:70px">Actions</th>
+          <th style="min-width:110px">Load Status</th>
+          <th style="width:80px">Actions</th>
         </tr></thead>
         <tbody id="bg-tb"></tbody>
       </table>
@@ -1313,46 +1325,82 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
 <div class="page" id="page-bg-customers">
   <div id="bgcust-mini" class="kpi-grid" style="margin-bottom:10px"></div>
   <div class="fbar">
-    <input type="search" id="bgcust-q" placeholder="🔍 Search customers…" oninput="renderBGCustomers()">
+    <select id="bgcust-sf" style="font-size:11px;padding:4px 6px;background:var(--bg4);border:1px solid var(--border2);border-radius:5px;color:var(--text)">
+      <option value="all">Search All</option>
+      <option value="company_name">Company Name</option>
+      <option value="contact">Contact</option>
+      <option value="telephone">Phone</option>
+      <option value="email">Email</option>
+      <option value="city">City</option>
+      <option value="state">State</option>
+      <option value="sales_rep">Sales Rep</option>
+    </select>
+    <input type="search" id="bgcust-q" placeholder="🔍 Search…" oninput="renderBGCustomers()">
     <select id="bgcust-rep" onchange="renderBGCustomers()"><option value="">All Reps</option></select>
     <select id="bgcust-terms" onchange="renderBGCustomers()">
       <option value="">All Terms</option><option>Net 30</option><option>Net 15</option><option>Due On Receipt</option>
     </select>
+    <select id="bgcust-bl" onchange="renderBGCustomers()">
+      <option value="all">All Customers</option>
+      <option value="">Active Only</option>
+      <option value="1">Blacklisted</option>
+    </select>
     <span id="bgcust-cnt" style="font-size:11px;color:var(--text3)"></span>
     <button class="btn btn-primary btn-sm" onclick="openBGCustomer(null)" style="margin-left:auto">+ Add Customer</button>
   </div>
-  <div class="card"><div class="card-body tw" style="max-height:calc(100vh - 200px);overflow-y:auto">
+  <div class="card"><div class="card-body tw" style="max-height:calc(100vh - 220px);overflow-y:auto">
     <table><thead><tr>
       <th onclick="sortBGCust('company_name')" style="cursor:pointer">Company↕</th>
       <th>Contact</th><th>Phone</th><th>Email</th>
       <th>City</th><th>State</th>
       <th>Sales Rep</th><th>Terms</th><th>Credit Limit</th>
-      <th style="width:60px">✏</th>
+      <th style="width:70px">Actions</th>
     </tr></thead><tbody id="bgcust-tb"></tbody></table>
   </div></div>
 </div>
 
-<!-- BG CARRIERS -->
+<!-- BG EXTERNAL CARRIERS -->
 <div class="page" id="page-bg-carriers">
   <div id="bgcarr-mini" class="kpi-grid" style="margin-bottom:10px"></div>
   <div class="fbar">
-    <input type="search" id="bgcarr-q" placeholder="🔍 Search carriers, MC#, DOT#…" oninput="renderBGCarriers()">
-    <select id="bgcarr-terms" onchange="renderBGCarriers()">
-      <option value="">All Terms</option><option>Net 30</option><option>Net 15</option><option>Quick Pay 30 Days</option><option>Quick Pay ACH</option><option>ACH</option>
+    <select id="bgcarr-sf" style="font-size:11px;padding:4px 6px;background:var(--bg4);border:1px solid var(--border2);border-radius:5px;color:var(--text)">
+      <option value="all">Search All</option>
+      <option value="name">Carrier Name</option>
+      <option value="mc_number">MC #</option>
+      <option value="dot_number">DOT #</option>
+      <option value="contact">Contact</option>
+      <option value="telephone">Phone</option>
+      <option value="city">City</option>
+      <option value="state">State</option>
+      <option value="tax_id">EIN/Tax ID</option>
     </select>
-    <select id="bgcarr-bl" onchange="renderBGCarriers()">
-      <option value="">Active Only</option><option value="1">Blacklisted</option><option value="all">All</option>
+    <input type="search" id="bgcarr-q" placeholder="🔍 Search…" oninput="bgCarrPage=0;renderBGCarriers()">
+    <select id="bgcarr-terms" onchange="bgCarrPage=0;renderBGCarriers()">
+      <option value="">All Terms</option><option>Net 30</option><option>Net 15</option>
+      <option>Quick Pay 30 Days</option><option>Quick Pay ACH</option><option>ACH</option>
+    </select>
+    <select id="bgcarr-status" onchange="bgCarrPage=0;renderBGCarriers()">
+      <option value="all">All Carriers</option>
+      <option value="active">Active Only</option>
+      <option value="inactive">Incomplete</option>
+      <option value="1">Blacklisted</option>
+    </select>
+    <select id="bgcarr-ins" onchange="bgCarrPage=0;renderBGCarriers()">
+      <option value="">All Insurance</option>
+      <option value="expiring">Expiring ≤30d</option>
+      <option value="expired">Expired</option>
+      <option value="ok">Valid</option>
     </select>
     <span id="bgcarr-cnt" style="font-size:11px;color:var(--text3)"></span>
     <button class="btn btn-primary btn-sm" onclick="openBGCarrier(null)" style="margin-left:auto">+ Add Carrier</button>
   </div>
-  <div class="card"><div class="card-body tw" style="max-height:calc(100vh - 250px);overflow-y:auto">
+  <div class="card"><div class="card-body tw" style="max-height:calc(100vh - 270px);overflow-y:auto">
     <table><thead><tr>
       <th onclick="sortBGCarr('name')" style="cursor:pointer">Carrier↕</th>
       <th>MC #</th><th>DOT #</th><th>Contact</th><th>Phone</th>
       <th>City</th><th>State</th>
       <th>Terms</th><th>Cargo Ins</th><th>Ins Expiry</th>
-      <th style="width:80px">Status</th>
+      <th style="width:90px">Status</th>
       <th style="width:80px">Actions</th>
     </tr></thead><tbody id="bgcarr-tb"></tbody></table>
   </div></div>
@@ -1362,16 +1410,34 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
 <div class="page" id="page-bg-shippers">
   <div id="bgship-mini" class="kpi-grid" style="margin-bottom:10px"></div>
   <div class="fbar">
-    <input type="search" id="bgship-q" placeholder="🔍 Search shippers…" oninput="renderBGShippers()">
+    <select id="bgship-sf" style="font-size:11px;padding:4px 6px;background:var(--bg4);border:1px solid var(--border2);border-radius:5px;color:var(--text)">
+      <option value="all">Search All</option>
+      <option value="name">Name</option>
+      <option value="city">City</option>
+      <option value="state">State</option>
+      <option value="zip">Zip</option>
+      <option value="contact">Contact</option>
+      <option value="telephone">Phone</option>
+    </select>
+    <input type="search" id="bgship-q" placeholder="🔍 Search…" oninput="bgShipPage=0;renderBGShippers()">
+    <select id="bgship-state" onchange="bgShipPage=0;renderBGShippers()">
+      <option value="">All States</option>
+    </select>
+    <select id="bgship-appt" onchange="bgShipPage=0;renderBGShippers()">
+      <option value="">All</option>
+      <option value="1">Appt Required</option>
+      <option value="0">No Appt</option>
+    </select>
     <span id="bgship-cnt" style="font-size:11px;color:var(--text3)"></span>
     <button class="btn btn-primary btn-sm" onclick="openBGShipper(null)" style="margin-left:auto">+ Add Shipper</button>
   </div>
-  <div class="card"><div class="card-body tw" style="max-height:calc(100vh - 200px);overflow-y:auto">
+  <div class="card"><div class="card-body tw" style="max-height:calc(100vh - 220px);overflow-y:auto">
     <table><thead><tr>
       <th onclick="sortBGShip('name')" style="cursor:pointer">Name↕</th>
-      <th>Address</th><th>City</th><th>State</th><th>Zip</th>
+      <th>Address</th><th onclick="sortBGShip('city')" style="cursor:pointer">City↕</th>
+      <th onclick="sortBGShip('state')" style="cursor:pointer">State↕</th><th>Zip</th>
       <th>Contact</th><th>Phone</th><th>Hours</th><th>Appt</th>
-      <th style="width:60px">✏</th>
+      <th style="width:70px">Actions</th>
     </tr></thead><tbody id="bgship-tb"></tbody></table>
   </div></div>
 </div>
@@ -1380,16 +1446,34 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
 <div class="page" id="page-bg-consignees">
   <div id="bgcons-mini" class="kpi-grid" style="margin-bottom:10px"></div>
   <div class="fbar">
-    <input type="search" id="bgcons-q" placeholder="🔍 Search consignees…" oninput="renderBGConsignees()">
+    <select id="bgcons-sf" style="font-size:11px;padding:4px 6px;background:var(--bg4);border:1px solid var(--border2);border-radius:5px;color:var(--text)">
+      <option value="all">Search All</option>
+      <option value="name">Name</option>
+      <option value="city">City</option>
+      <option value="state">State</option>
+      <option value="zip">Zip</option>
+      <option value="contact">Contact</option>
+      <option value="telephone">Phone</option>
+    </select>
+    <input type="search" id="bgcons-q" placeholder="🔍 Search…" oninput="bgConsPage=0;renderBGConsignees()">
+    <select id="bgcons-state" onchange="bgConsPage=0;renderBGConsignees()">
+      <option value="">All States</option>
+    </select>
+    <select id="bgcons-appt" onchange="bgConsPage=0;renderBGConsignees()">
+      <option value="">All</option>
+      <option value="1">Appt Required</option>
+      <option value="0">No Appt</option>
+    </select>
     <span id="bgcons-cnt" style="font-size:11px;color:var(--text3)"></span>
     <button class="btn btn-primary btn-sm" onclick="openBGConsignee(null)" style="margin-left:auto">+ Add Consignee</button>
   </div>
-  <div class="card"><div class="card-body tw" style="max-height:calc(100vh - 200px);overflow-y:auto">
+  <div class="card"><div class="card-body tw" style="max-height:calc(100vh - 220px);overflow-y:auto">
     <table><thead><tr>
       <th onclick="sortBGCons('name')" style="cursor:pointer">Name↕</th>
-      <th>Address</th><th>City</th><th>State</th><th>Zip</th>
+      <th>Address</th><th onclick="sortBGCons('city')" style="cursor:pointer">City↕</th>
+      <th onclick="sortBGCons('state')" style="cursor:pointer">State↕</th><th>Zip</th>
       <th>Contact</th><th>Phone</th><th>Hours</th><th>Appt</th>
-      <th style="width:60px">✏</th>
+      <th style="width:70px">Actions</th>
     </tr></thead><tbody id="bgcons-tb"></tbody></table>
   </div></div>
 </div>
@@ -1498,6 +1582,21 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
           <select id="bgl_entity">
             <option value="Continental Group LLC">Continental Group LLC</option>
             <option value="CMR Solutions LLC">CMR Solutions LLC</option>
+          </select>
+        </div>
+        <div class="fitem"><label>Status</label>
+          <select id="bgl_status" style="font-weight:700">
+            <option value="Pending">Pending</option>
+            <option value="Open" selected>Open</option>
+            <option value="Covered">Covered</option>
+            <option value="Dispatched">Dispatched</option>
+            <option value="On Route">On Route</option>
+            <option value="Unloading">Unloading</option>
+            <option value="In Yard">In Yard</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+            <option value="TONU">TONU</option>
           </select>
         </div>
         <div class="fitem"><label>Sales Rep</label>
@@ -1613,13 +1712,14 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
       <input type="hidden" id="bgl_edit_id" value="">
     </div>
     <div class="mfoot" style="justify-content:space-between">
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-ghost" id="bgl-rc-btn" onclick="generateBGRC()" style="display:none">📄 Rate Con</button>
-        <button class="btn btn-ghost" id="bgl-inv-btn" onclick="generateBGInvoice()" style="display:none">🧾 Invoice</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-ghost" id="bgl-rc-btn" onclick="generateBGRC()" style="display:none;color:var(--blue)">📄 Rate Con</button>
+        <button class="btn btn-ghost" id="bgl-inv-btn" onclick="generateBGInvoice()" style="display:none;color:var(--green)">🧾 Invoice</button>
+        <button class="btn btn-ghost" id="bgl-del-btn" onclick="deleteBGLoadFromForm()" style="display:none;color:var(--red)">🗑 Delete</button>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-ghost" onclick="closeM('mBGLoad')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveBGLoad()">💾 Save Load</button>
+        <button class="btn btn-ghost" onclick="closeM('mBGLoad')">✕ Cancel</button>
+        <button class="btn btn-primary" onclick="saveBGLoad()">✓ Save Load</button>
       </div>
     </div>
   </div>
@@ -1657,9 +1757,12 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
       <div class="fitem s2"><label>Notes</label><textarea id="bgc_notes" rows="2" style="resize:vertical;padding:8px;background:var(--bg5);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:12px;width:100%"></textarea></div>
     </div>
     <input type="hidden" id="bgc_id" value=""></div>
-    <div class="mfoot">
-      <button class="btn btn-ghost" onclick="closeM('mBGCustomer')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveBGCustomer()">💾 Save</button>
+    <div class="mfoot" style="justify-content:space-between">
+      <button id="bgcust-del-btn" class="btn btn-ghost" style="color:var(--red);display:none" onclick="deleteBGRecordFromModal('customers','bgc_id','bgc_name')">🗑 Delete</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeM('mBGCustomer')">✕ Cancel</button>
+        <button class="btn btn-primary" onclick="saveBGCustomer()">✓ Save</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1801,9 +1904,12 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
       </div>
     </div>
 
-    <div class="mfoot">
-      <button class="btn btn-ghost" onclick="closeM('mBGCarrier')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveBGCarrier()">💾 Save Carrier</button>
+    <div class="mfoot" style="justify-content:space-between">
+      <button id="bgcarr-del-btn" class="btn btn-ghost" style="color:var(--red);display:none" onclick="deleteBGRecordFromModal('carriers','bgcr_id','bgcr_name')">🗑 Delete</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeM('mBGCarrier')">✕ Cancel</button>
+        <button class="btn btn-primary" onclick="saveBGCarrier()">✓ Save Carrier</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1829,9 +1935,12 @@ body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#
     </div>
     <input type="hidden" id="bgloc_id" value="">
     <input type="hidden" id="bgloc_type" value=""></div>
-    <div class="mfoot">
-      <button class="btn btn-ghost" onclick="closeM('mBGLocation')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveBGLocation()">💾 Save</button>
+    <div class="mfoot" style="justify-content:space-between">
+      <button id="bgloc-del-btn" class="btn btn-ghost" style="color:var(--red);display:none" onclick="deleteBGRecordFromModal(bgloc_type_val(),'bgloc_id','bgloc_name')">🗑 Delete</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeM('mBGLocation')">✕ Cancel</button>
+        <button class="btn btn-primary" onclick="saveBGLocation()">✓ Save</button>
+      </div>
     </div>
   </div>
 </div>
@@ -6393,13 +6502,19 @@ async function initBrokerage() {
   bgCarrierPay = Array.isArray(cp)    ? cp    : [];
   _bgDataLoaded = true;
 
-  // Populate rep dropdowns
+  // Populate rep dropdowns from actual data
   const reps = [...new Set(bgCustomers.map(c=>c.sales_rep).filter(Boolean))].sort();
   ['bg-rep','bgcust-rep'].forEach(id => {
     const el=$(id); if(!el) return;
     el.innerHTML = '<option value="">All Reps</option>';
     reps.forEach(r=>{ const o=document.createElement('option');o.value=r;o.textContent=r;el.appendChild(o); });
   });
+
+  // Populate state dropdowns from actual shipper/consignee data
+  const shipStates = [...new Set(bgShippers.map(s=>s.state).filter(Boolean))].sort();
+  const el1=$('bgship-state'); if(el1){ el1.innerHTML='<option value="">All States</option>'; shipStates.forEach(s=>{ const o=document.createElement('option');o.value=s;o.textContent=s;el1.appendChild(o); }); }
+  const consStates = [...new Set(bgConsignees.map(c=>c.state).filter(Boolean))].sort();
+  const el2=$('bgcons-state'); if(el2){ el2.innerHTML='<option value="">All States</option>'; consStates.forEach(s=>{ const o=document.createElement('option');o.value=s;o.textContent=s;el2.appendChild(o); }); }
 
   // If already on a brokerage page, render it now that data is loaded
   const activePage = document.querySelector('.page.active');
@@ -6443,15 +6558,28 @@ function showBGLoading(tbId, kpiId) {
 
 // ── DISPATCH BOARD ─────────────────────────────────────────────────
 const BG_STATUS_COLORS = {
-  'Pending':'#f59e0b','Open':'#3b82f6','Covered':'#8b5cf6',
-  'Dispatched':'#ec4899','On Route':'#14b8a6','Unloading':'#f97316',
-  'In Yard':'#6b7280','Delivered':'#22c55e','Cancelled':'#ef4444','TONU':'#ef4444'
+  'Pending': {bg:'#fef3c7',color:'#92400e',border:'#f59e0b'},
+  'Open':    {bg:'#dbeafe',color:'#1e40af',border:'#3b82f6'},
+  'Covered': {bg:'#ede9fe',color:'#5b21b6',border:'#8b5cf6'},
+  'Dispatched':{bg:'#fce7f3',color:'#9d174d',border:'#ec4899'},
+  'On Route':{bg:'#ccfbf1',color:'#134e4a',border:'#14b8a6'},
+  'Unloading':{bg:'#ffedd5',color:'#9a3412',border:'#f97316'},
+  'In Yard': {bg:'#f1f5f9',color:'#475569',border:'#94a3b8'},
+  'Delivered':{bg:'#dcfce7',color:'#14532d',border:'#22c55e'},
+  'Completed':{bg:'#d1fae5',color:'#065f46',border:'#10b981'},
+  'Cancelled':{bg:'#fee2e2',color:'#991b1b',border:'#ef4444'},
+  'TONU':    {bg:'#fef2f2',color:'#b91c1c',border:'#f87171'},
 };
+function bgStatusStyle(status) {
+  const s = BG_STATUS_COLORS[status]||{bg:'var(--bg4)',color:'var(--text2)',border:'var(--border2)'};
+  return \`background:\${s.bg};color:\${s.color};border:1px solid \${s.border};font-weight:700;border-radius:4px;font-size:10px;padding:3px 6px;cursor:pointer\`;
+}
 
 function sortBG(col) { bgSort.dir = bgSort.col===col ? bgSort.dir*-1 : 1; bgSort.col=col; renderBGBoard(); }
 
 function renderBGBoard() {
   const q   = ($('bg-q')?.value||'').toLowerCase();
+  const sf  = $('bg-sf')?.value||'all';
   const st  = $('bg-st')?.value||'';
   const rep = $('bg-rep')?.value||'';
   const ent = $('bg-entity')?.value||'';
@@ -6483,7 +6611,7 @@ function renderBGBoard() {
     <div class="kpi yellow" style="padding:10px 14px"><div class="kpi-label" style="font-size:10px">Gross Profit</div><div class="kpi-value" style="font-size:18px;color:${totProfit>=0?'var(--green)':'var(--red)'}">${f$(totProfit)}</div></div>
   `;
 
-  const cnt = $('bg-cnt'); if(cnt) cnt.textContent = ls.length+' loads';
+  const cnt = $('bg-cnt'); if(cnt) cnt.textContent = ls.length+' of '+bgLoads.length+' loads';
 
   const tb = $('bg-tb'); if(!tb) return;
   if (!ls.length) { tb.innerHTML=`<tr><td colspan="15" style="text-align:center;color:var(--text3);padding:30px">No loads found</td></tr>`; return; }
@@ -6491,29 +6619,36 @@ function renderBGBoard() {
   tb.innerHTML = ls.map(l => {
     const profit = parseFloat(l.gross_profit)||0;
     const margin = parseFloat(l.margin_pct)||0;
-    const sc = BG_STATUS_COLORS[l.status]||'#6b7280';
-    const isDelivered = l.status==='Delivered';
+    const sc = BG_STATUS_COLORS[l.status]||{bg:'var(--bg4)',color:'var(--text2)',border:'var(--border2)'};
+    const isDelivered = ['Delivered','Completed','Cancelled'].includes(l.status);
     const insWarn = bgCarrierInsWarning(l.carrier_id);
     const blWarn  = bgCarrierBlacklisted(l.carrier_id);
-    return `<tr style="${isDelivered?'opacity:.7':''}">
-      <td style="font-weight:700;color:var(--blue)">${l.load_number}${blWarn?'<span title="Blacklisted carrier" style="color:var(--red);margin-left:4px">⛔</span>':''}${insWarn?'<span title="Insurance expired/missing" style="color:var(--orange);margin-left:2px">⚠️</span>':''}</td>
+    const sStyle = bgStatusStyle(l.status);
+    return `<tr style="${isDelivered?'opacity:.75':''}cursor:pointer" onclick="editBGLoad(${l.id})">
+      <td onclick="event.stopPropagation()" style="font-weight:700;color:var(--blue)">
+        <a href="#" onclick="event.preventDefault();editBGLoad(${l.id})" style="color:var(--blue)">${l.load_number}</a>
+        ${blWarn?'<span title="Blacklisted" style="color:var(--red)">⛔</span>':''}
+        ${insWarn?'<span title="Ins expired" style="color:var(--orange)">⚠️</span>':''}
+      </td>
       <td style="color:var(--text3);font-size:11px">${l.wo_number||'—'}</td>
-      <td style="font-size:11px">${l.created_at?String(l.created_at).slice(5,10):''}</td>
-      <td style="font-weight:600">${l.customer_name||'—'}</td>
-      <td>${l.carrier_name||'<span style="color:var(--orange);font-style:italic">Unassigned</span>'}</td>
-      <td style="font-size:11px">${l.shipper_name||l.pu_city||'—'}${l.pu_state?', '+l.pu_state:''}</td>
-      <td style="font-size:11px">${l.consignee_name||l.del_city||'—'}${l.del_state?', '+l.del_state:''}</td>
       <td style="font-size:11px">${l.pu_date?String(l.pu_date).slice(5,10):'—'}</td>
       <td style="font-size:11px">${l.del_date?String(l.del_date).slice(5,10):'—'}</td>
+      <td style="font-weight:600;font-size:12px">${l.customer_name||'—'}</td>
+      <td style="font-size:11px">${l.carrier_name||'<span style="color:var(--orange);font-style:italic;font-size:10px">Unassigned</span>'}</td>
+      <td style="font-size:11px">${l.shipper_name||l.pu_city||'—'}${l.pu_state?'<br><span style="color:var(--text3);font-size:10px">'+l.pu_state+'</span>':''}</td>
+      <td style="font-size:11px">${l.consignee_name||l.del_city||'—'}${l.del_state?'<br><span style="color:var(--text3);font-size:10px">'+l.del_state+'</span>':''}</td>
       <td style="color:var(--green);font-weight:600">${f$(l.customer_rate)}</td>
       <td style="color:var(--orange)">${f$(l.carrier_rate)}</td>
-      <td style="font-weight:700;color:${profit>=0?'var(--green)':'var(--red)'}">${f$(profit)}<div style="font-size:9px;color:var(--text3)">${margin.toFixed(1)}%</div></td>
+      <td style="font-weight:700;color:${profit>=0?'var(--green)':'var(--red)'}">${f$(profit)}<br><span style="font-size:9px;color:var(--text3)">${margin.toFixed(1)}%</span></td>
       <td style="font-size:11px">${l.sales_rep||'—'}</td>
-      <td><select onchange="patchBGStatus(${l.id},this.value)" style="font-size:10px;padding:2px 4px;border-radius:4px;border:1px solid ${sc};color:${sc};background:var(--bg4);font-weight:700;cursor:pointer">
-        ${['Pending','Open','Covered','Dispatched','On Route','Unloading','In Yard','Delivered','Cancelled','TONU'].map(s=>`<option value="${s}" ${l.status===s?'selected':''}>${s}</option>`).join('')}
-      </select></td>
-      <td>
-        <button class="edit-btn" onclick="editBGLoad(${l.id})" title="Edit load">✏</button>
+      <td onclick="event.stopPropagation()">
+        <select onchange="bgHandleStatusChange(${l.id},this)" style="${sStyle};min-width:90px">
+          ${['Open','Covered','Dispatched','On Route','Unloading','In Yard','Delivered','Completed','Cancelled','TONU'].map(s=>`<option value="${s}" ${l.status===s?'selected':''}>${s}</option>`).join('')}
+          <option value="__delete__" style="color:#ef4444;font-weight:700">— Delete Load —</option>
+        </select>
+      </td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap">
+        <button class="edit-btn" onclick="editBGLoad(${l.id})" title="Edit">✏</button>
         <button class="edit-btn" onclick="viewBGRC(${l.id})" title="Rate Con" style="color:var(--blue)">📄</button>
         ${isBrokerAcct()?`<button class="edit-btn" onclick="viewBGInvoice(${l.id})" title="Invoice" style="color:var(--green)">🧾</button>`:''}
       </td>
@@ -6527,11 +6662,29 @@ function clearBGFilters() {
   renderBGBoard();
 }
 
+async function bgHandleStatusChange(id, sel) {
+  const val = sel.value;
+  if (val === '__delete__') {
+    // Reset select before possibly deleting
+    const l = bgLoads.find(x=>x.id===id);
+    if(l) sel.value = l.status;
+    if (!confirm(`Delete Load ${l?.load_number||id}? This cannot be undone.`)) return;
+    const r = await api.delete('/api/bg/loads/'+id, {reason:'Deleted from dispatch board'});
+    if(r.ok){
+      bgLoads = bgLoads.filter(x=>x.id!==id);
+      toast('Load deleted'); renderBGBoard();
+    } else toast('Delete failed',true);
+    return;
+  }
+  await patchBGStatus(id, val);
+  // Update select style
+  sel.style.cssText = bgStatusStyle(val)+';min-width:90px';
+}
 async function patchBGStatus(id, status) {
-  await api.patch(`/api/bg/loads/${id}/status`, {status});
+  await api.patch('/api/bg/loads/'+id+'/status', {status});
   const l = bgLoads.find(x=>x.id===id); if(l) l.status=status;
   renderBGBoard();
-  toast(`Load status → ${status}`);
+  toast('Status → '+status);
 }
 
 function bgCarrierInsWarning(carrierId) {
@@ -6580,6 +6733,8 @@ function openNewBGLoad() {
   if($('bgl_num'))$('bgl_num').value='(auto)';
   if($('bgl-rc-btn'))$('bgl-rc-btn').style.display='none';
   if($('bgl-inv-btn'))$('bgl-inv-btn').style.display='none';
+  if($('bgl-del-btn'))$('bgl-del-btn').style.display='none';
+  if($('bgl_status'))$('bgl_status').value='Open';
   calcBGProfit();
   openM('mBGLoad');
 }
@@ -6631,6 +6786,8 @@ function editBGLoad(id) {
   $('bgl_carr_notes').value = l.carrier_advance_notes||'';
   if($('bgl-rc-btn'))$('bgl-rc-btn').style.display='inline-flex';
   if($('bgl-inv-btn')&&isBrokerAcct())$('bgl-inv-btn').style.display='inline-flex';
+  if($('bgl-del-btn'))$('bgl-del-btn').style.display='inline-flex';
+  if($('bgl_status'))$('bgl_status').value=l.status||'Open';
   calcBGProfit();
   openM('mBGLoad');
 }
@@ -6678,6 +6835,7 @@ async function saveBGLoad() {
     bol_number:      $('bgl_bol')?.value||'',
     dispatcher_notes: $('bgl_notes')?.value||'',
     carrier_advance_notes: $('bgl_carr_notes')?.value||'',
+    status: $('bgl_status')?.value||'Open',
   };
   if (!payload.customer_name) { toast('Customer required',true); return; }
 
@@ -7136,6 +7294,7 @@ function openBGCustomer(id) {
   $('bgc_credit').value=c.credit_limit||'';
   if($('bgc_bl'))$('bgc_bl').value=String(c.blacklisted||0);
   $('bgc_notes').value=c.notes||'';
+  const custDelBtn=$('bgcust-del-btn'); if(custDelBtn) custDelBtn.style.display=id?'inline-flex':'none';
   openM('mBGCustomer');
 }
 async function saveBGCustomer() {
@@ -7164,16 +7323,33 @@ function bgInsuranceBadge(expiry) {
 
 function sortBGCarr(col){bgCarrSort.dir=bgCarrSort.col===col?bgCarrSort.dir*-1:1;bgCarrSort.col=col;bgCarrPage=0;renderBGCarriers();}
 function renderBGCarriers() {
-  const q  = ($('bgcarr-q')?.value||'').toLowerCase();
-  const tm = $('bgcarr-terms')?.value||'';
-  const bl = $('bgcarr-bl')?.value||'';
+  const q   = ($('bgcarr-q')?.value||'').toLowerCase();
+  const sf  = $('bgcarr-sf')?.value||'all';
+  const tm  = $('bgcarr-terms')?.value||'';
+  const st  = $('bgcarr-status')?.value||'all';
+  const ins = $('bgcarr-ins')?.value||'';
   let ls = [...bgCarriers];
-  if (q)  ls = ls.filter(c=>[c.name,c.mc_number,c.dot_number,c.contact,c.telephone,c.city,c.state].join(' ').toLowerCase().includes(q));
-  if (tm) ls = ls.filter(c=>c.pay_term===tm);
-  if (bl==='1') ls=ls.filter(c=>c.blacklisted);
-  else if (bl!=='all') ls=ls.filter(c=>!c.blacklisted);
+  if (q) ls = ls.filter(c => {
+    if(sf==='name')       return (c.name||'').toLowerCase().includes(q);
+    if(sf==='mc_number')  return (c.mc_number||'').toLowerCase().includes(q);
+    if(sf==='dot_number') return (c.dot_number||'').toLowerCase().includes(q);
+    if(sf==='contact')    return (c.contact||'').toLowerCase().includes(q);
+    if(sf==='telephone')  return (c.telephone||'').toLowerCase().includes(q);
+    if(sf==='city')       return (c.city||'').toLowerCase().includes(q);
+    if(sf==='state')      return (c.state||'').toLowerCase().includes(q);
+    if(sf==='tax_id')     return (c.tax_id||'').toLowerCase().includes(q);
+    return [c.name,c.mc_number,c.dot_number,c.contact,c.telephone,c.city,c.state,c.tax_id].join(' ').toLowerCase().includes(q);
+  });
+  if(tm) ls = ls.filter(c=>c.pay_term===tm);
+  if(st==='1')         ls = ls.filter(c=>c.blacklisted);
+  else if(st==='inactive') ls = ls.filter(c=>!c.blacklisted && c.active===0);
+  else if(st==='active')   ls = ls.filter(c=>!c.blacklisted && (c.active===1||c.active===null||c.active===undefined));
+  else if(st!=='all')      ls = ls.filter(c=>!c.blacklisted);
+  if(ins==='expiring') ls = ls.filter(c=>{ if(!c.cargo_ins_expiry)return false; const d=Math.round((new Date(String(c.cargo_ins_expiry).slice(0,10)+'T00:00:00')-new Date())/86400000); return d>=0&&d<=30; });
+  else if(ins==='expired') ls = ls.filter(c=>{ if(!c.cargo_ins_expiry)return false; return Math.round((new Date(String(c.cargo_ins_expiry).slice(0,10)+'T00:00:00')-new Date())/86400000)<0; });
+  else if(ins==='ok')      ls = ls.filter(c=>{ if(!c.cargo_ins_expiry)return false; return Math.round((new Date(String(c.cargo_ins_expiry).slice(0,10)+'T00:00:00')-new Date())/86400000)>30; });
   ls.sort((a,b)=>bgCarrSort.dir*String(a[bgCarrSort.col]||'').localeCompare(String(b[bgCarrSort.col]||'')));
-  if($('bgcarr-cnt'))$('bgcarr-cnt').textContent=ls.length+' carriers';
+  if($('bgcarr-cnt'))$('bgcarr-cnt').textContent=ls.length+' of '+bgCarriers.length+' carriers';
   const today=localDate();
 
   // Mini analytics
@@ -7280,6 +7456,65 @@ async function saveBGLocation(){
 }
 
 // ── INVOICES ──────────────────────────────────────────────────────
+
+
+function deleteBGLoadFromForm() {
+  const id = $('bgl_edit_id')?.value; if(!id) return;
+  const l = bgLoads.find(x=>x.id===parseInt(id));
+  if(!confirm('Delete Load '+l?.load_number+'? This cannot be undone.')) return;
+  api.delete('/api/bg/loads/'+id, {reason:'Deleted from form'}).then(r=>{
+    if(r.ok){ bgLoads=bgLoads.filter(x=>x.id!==parseInt(id)); closeM('mBGLoad'); toast('Load deleted'); renderBGBoard(); }
+    else toast('Delete failed',true);
+  });
+}
+
+function bgloc_type_val() { return $('bgloc_type')?.value||'shippers'; }
+
+function deleteBGRecordFromModal(type, idFieldId, nameFieldId) {
+  const id = $(idFieldId)?.value; if(!id) return;
+  const name = $(nameFieldId)?.value||'this record';
+  if(!confirm('Delete '+name+'? This cannot be undone.')) return;
+  const endpointMap = {customers:'bg/customers',carriers:'bg/carriers',shippers:'bg/shippers',consignees:'bg/consignees'};
+  const ep = endpointMap[type]; if(!ep) return;
+  api.delete('/api/'+ep+'/'+id).then(r=>{
+    if(r.ok){
+      if(type==='customers')  bgCustomers  = bgCustomers.filter(x=>x.id!==parseInt(id));
+      if(type==='carriers')   bgCarriers   = bgCarriers.filter(x=>x.id!==parseInt(id));
+      if(type==='shippers')   bgShippers   = bgShippers.filter(x=>x.id!==parseInt(id));
+      if(type==='consignees') bgConsignees = bgConsignees.filter(x=>x.id!==parseInt(id));
+      closeM('mBG'+type.charAt(0).toUpperCase()+type.slice(1,-1).replace('ie','ey'));
+      toast(name+' deleted');
+      if(type==='customers')  { closeM('mBGCustomer');  renderBGCustomers(); }
+      if(type==='carriers')   { closeM('mBGCarrier');   renderBGCarriers(); }
+      if(type==='shippers')   { closeM('mBGLocation');  renderBGShippers(); }
+      if(type==='consignees') { closeM('mBGLocation');  renderBGConsignees(); }
+    } else toast('Delete failed: '+(r.error||''),true);
+  });
+}
+
+// ── DELETE BG RECORD ─────────────────────────────────────────────
+async function deleteBGRecord(type, id, name) {
+  if (!confirm('Delete ' + name + '?\nThis cannot be undone.')) return;
+  const endpointMap = {
+    customers:'bg/customers', carriers:'bg/carriers',
+    shippers:'bg/shippers', consignees:'bg/consignees'
+  };
+  const ep = endpointMap[type];
+  if(!ep) return;
+  const r = await api.delete('/api/'+ep+'/'+id);
+  if(r.ok){
+    if(type==='customers')  bgCustomers  = bgCustomers.filter(x=>x.id!==id);
+    if(type==='carriers')   bgCarriers   = bgCarriers.filter(x=>x.id!==id);
+    if(type==='shippers')   bgShippers   = bgShippers.filter(x=>x.id!==id);
+    if(type==='consignees') bgConsignees = bgConsignees.filter(x=>x.id!==id);
+    toast(name + ' deleted');
+    if(type==='customers')  renderBGCustomers();
+    if(type==='carriers')   renderBGCarriers();
+    if(type==='shippers')   renderBGShippers();
+    if(type==='consignees') renderBGConsignees();
+  } else toast('Delete failed: '+(r.error||''), true);
+}
+
 // ── ACCOUNTING MANAGER ───────────────────────────────────────────
 let _acctTab = 'delivered';
 
@@ -7530,12 +7765,26 @@ function renderBGCustomers() {
   const q   = ($('bgcust-q')?.value||'').toLowerCase();
   const rep = $('bgcust-rep')?.value||'';
   const trm = $('bgcust-terms')?.value||'';
+  const sf  = $('bgcust-sf')?.value||'all';
+  const bl  = $('bgcust-bl')?.value||'';
   let ls = [...bgCustomers];
-  if (q)   ls = ls.filter(c=>[c.company_name,c.contact,c.email,c.telephone,c.city,c.state,c.sales_rep].join(' ').toLowerCase().includes(q));
+  if (q) ls = ls.filter(c => {
+    if(sf==='company_name') return (c.company_name||'').toLowerCase().includes(q);
+    if(sf==='contact')    return (c.contact||'').toLowerCase().includes(q);
+    if(sf==='telephone')  return (c.telephone||'').toLowerCase().includes(q);
+    if(sf==='email')      return (c.email||'').toLowerCase().includes(q);
+    if(sf==='city')       return (c.city||'').toLowerCase().includes(q);
+    if(sf==='state')      return (c.state||'').toLowerCase().includes(q);
+    if(sf==='sales_rep')  return (c.sales_rep||'').toLowerCase().includes(q);
+    return [c.company_name,c.contact,c.email,c.telephone,c.city,c.state,c.sales_rep].join(' ').toLowerCase().includes(q);
+  });
   if (rep) ls = ls.filter(c=>c.sales_rep===rep);
   if (trm) ls = ls.filter(c=>c.payment_terms===trm);
+  if (bl==='1')  ls = ls.filter(c=>c.blacklisted);
+  else if(bl==='' || bl==='active') ls = ls.filter(c=>!c.blacklisted);
+  // bl==='all' shows everything
   ls.sort((a,b)=>bgCustSort.dir*String(a[bgCustSort.col]||'').localeCompare(String(b[bgCustSort.col]||'')));
-  if($('bgcust-cnt'))$('bgcust-cnt').textContent=ls.length+' customers';
+  if($('bgcust-cnt'))$('bgcust-cnt').textContent=ls.length+' of '+bgCustomers.length+' customers';
 
   // Mini stats
   const mini=$('bgcust-mini');
@@ -7558,19 +7807,33 @@ function renderBGCustomers() {
     <td style="font-size:11px">${c.sales_rep||'—'}</td>
     <td><span style="background:var(--bg4);padding:2px 7px;border-radius:4px;font-size:10px">${c.payment_terms||'Net 30'}</span></td>
     <td>${c.credit_limit>0?f$(c.credit_limit):'—'}</td>
-    <td style="display:flex;gap:4px">
-      <button class="edit-btn" onclick="event.stopPropagation();openBGCustomer(${c.id})">✏</button>
+    <td style="display:flex;gap:3px;flex-wrap:wrap">
+      <button class="edit-btn" onclick="event.stopPropagation();openBGCustomer(${c.id})" title="Edit" style="color:var(--blue)">✏</button>
       <button class="edit-btn" onclick="event.stopPropagation();openBGEntityFiles('customers',${c.id},'${(c.company_name||'').replace(/'/g,"\\'")}')">📎</button>
+      <button class="edit-btn" onclick="event.stopPropagation();deleteBGRecord('customers',${c.id},'${(c.company_name||'').replace(/'/g,"\\'")}')" title="Delete" style="color:var(--red)">🗑</button>
     </td>
   </tr>`).join('');
 }
 
 function renderBGShippers() {
   const q=($('bgship-q')?.value||'').toLowerCase();
+  const sf=$('bgship-sf')?.value||'all';
+  const stF=$('bgship-state')?.value||'';
+  const apF=$('bgship-appt')?.value||'';
   let ls=[...bgShippers];
-  if(q)ls=ls.filter(s=>[s.name,s.address,s.city,s.state,s.contact,s.telephone].join(' ').toLowerCase().includes(q));
+  if(q) ls=ls.filter(s=>{
+    if(sf==='name') return (s.name||'').toLowerCase().includes(q);
+    if(sf==='city') return (s.city||'').toLowerCase().includes(q);
+    if(sf==='state') return (s.state||'').toLowerCase().includes(q);
+    if(sf==='zip') return (s.zip||'').toLowerCase().includes(q);
+    if(sf==='contact') return (s.contact||'').toLowerCase().includes(q);
+    if(sf==='telephone') return (s.telephone||'').toLowerCase().includes(q);
+    return [s.name,s.address,s.city,s.state,s.zip,s.contact,s.telephone].join(' ').toLowerCase().includes(q);
+  });
+  if(stF) ls=ls.filter(s=>s.state===stF);
+  if(apF!=='') ls=ls.filter(s=>String(s.appointments||0)===apF);
   ls.sort((a,b)=>bgShipSort.dir*String(a[bgShipSort.col]||'').localeCompare(String(b[bgShipSort.col]||'')));
-  if($('bgship-cnt'))$('bgship-cnt').textContent=ls.length+' shippers';
+  if($('bgship-cnt'))$('bgship-cnt').textContent=ls.length+' of '+bgShippers.length+' shippers';
   const mini=$('bgship-mini');
   if(mini) mini.innerHTML=`
     <div class="kpi blue" style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Total Shippers</div><div class="kpi-value" style="font-size:16px">${bgShippers.length.toLocaleString()}</div></div>
@@ -7587,18 +7850,32 @@ function renderBGShippers() {
     <td style="font-size:11px">${s.hours||'—'}</td>
     <td>${s.appointments?'<span style="color:var(--blue)">Yes</span>':'No'}</td>
     <td style="display:flex;gap:4px">
-      <button class="edit-btn" onclick="event.stopPropagation();openBGShipper(${s.id})">✏</button>
+      <button class="edit-btn" onclick="event.stopPropagation();openBGShipper(${s.id})" title="Edit" style="color:var(--blue)">✏</button>
       <button class="edit-btn" onclick="event.stopPropagation();openBGEntityFiles('shippers',${s.id},'${(s.name||'').replace(/'/g,"\\'")}')">📎</button>
+      <button class="edit-btn" onclick="event.stopPropagation();deleteBGRecord('shippers',${s.id},'${(s.name||'').replace(/'/g,"\\'")}')" title="Delete" style="color:var(--red)">🗑</button>
     </td>
   </tr>`).join('');
 }
 
 function renderBGConsignees() {
   const q=($('bgcons-q')?.value||'').toLowerCase();
+  const sf=$('bgcons-sf')?.value||'all';
+  const stF=$('bgcons-state')?.value||'';
+  const apF=$('bgcons-appt')?.value||'';
   let ls=[...bgConsignees];
-  if(q)ls=ls.filter(c=>[c.name,c.address,c.city,c.state,c.contact,c.telephone].join(' ').toLowerCase().includes(q));
+  if(q) ls=ls.filter(c=>{
+    if(sf==='name') return (c.name||'').toLowerCase().includes(q);
+    if(sf==='city') return (c.city||'').toLowerCase().includes(q);
+    if(sf==='state') return (c.state||'').toLowerCase().includes(q);
+    if(sf==='zip') return (c.zip||'').toLowerCase().includes(q);
+    if(sf==='contact') return (c.contact||'').toLowerCase().includes(q);
+    if(sf==='telephone') return (c.telephone||'').toLowerCase().includes(q);
+    return [c.name,c.address,c.city,c.state,c.zip,c.contact,c.telephone].join(' ').toLowerCase().includes(q);
+  });
+  if(stF) ls=ls.filter(c=>c.state===stF);
+  if(apF!=='') ls=ls.filter(c=>String(c.appointments||0)===apF);
   ls.sort((a,b)=>bgConsSort.dir*String(a[bgConsSort.col]||'').localeCompare(String(b[bgConsSort.col]||'')));
-  if($('bgcons-cnt'))$('bgcons-cnt').textContent=ls.length+' consignees';
+  if($('bgcons-cnt'))$('bgcons-cnt').textContent=ls.length+' of '+bgConsignees.length+' consignees';
   const mini=$('bgcons-mini');
   if(mini) mini.innerHTML=`
     <div class="kpi blue" style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Total Consignees</div><div class="kpi-value" style="font-size:16px">${bgConsignees.length.toLocaleString()}</div></div>
@@ -7615,8 +7892,9 @@ function renderBGConsignees() {
     <td style="font-size:11px">${c.hours||'—'}</td>
     <td>${c.appointments?'<span style="color:var(--blue)">Yes</span>':'No'}</td>
     <td style="display:flex;gap:4px">
-      <button class="edit-btn" onclick="event.stopPropagation();openBGConsignee(${c.id})">✏</button>
+      <button class="edit-btn" onclick="event.stopPropagation();openBGConsignee(${c.id})" title="Edit" style="color:var(--blue)">✏</button>
       <button class="edit-btn" onclick="event.stopPropagation();openBGEntityFiles('consignees',${c.id},'${(c.name||'').replace(/'/g,"\\'")}')">📎</button>
+      <button class="edit-btn" onclick="event.stopPropagation();deleteBGRecord('consignees',${c.id},'${(c.name||'').replace(/'/g,"\\'")}')" title="Delete" style="color:var(--red)">🗑</button>
     </td>
   </tr>`).join('');
 }
@@ -7852,6 +8130,8 @@ function openBGCarrier(id){
   $('bgcr_fleet_size').value=c.truck_count||'';
   // Notes
   $('bgcr_notes').value=c.notes||'';
+  // Show/hide delete button based on edit vs new
+  const delBtn=$('bgcarr-del-btn'); if(delBtn) delBtn.style.display=id?'inline-flex':'none';
   openM('mBGCarrier');
 }
 
