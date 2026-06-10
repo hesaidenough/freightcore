@@ -6572,7 +6572,7 @@ const BG_STATUS_COLORS = {
 };
 function bgStatusStyle(status) {
   const s = BG_STATUS_COLORS[status]||{bg:'var(--bg4)',color:'var(--text2)',border:'var(--border2)'};
-  return \`background:\${s.bg};color:\${s.color};border:1px solid \${s.border};font-weight:700;border-radius:4px;font-size:10px;padding:3px 6px;cursor:pointer\`;
+  return 'background:'+s.bg+';color:'+s.color+';border:1px solid '+s.border+';font-weight:700;border-radius:4px;font-size:10px;padding:3px 6px;cursor:pointer';
 }
 
 function sortBG(col) { bgSort.dir = bgSort.col===col ? bgSort.dir*-1 : 1; bgSort.col=col; renderBGBoard(); }
