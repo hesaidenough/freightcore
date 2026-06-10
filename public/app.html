@@ -7836,7 +7836,7 @@ function renderBGShippers() {
   if($('bgship-cnt'))$('bgship-cnt').textContent=ls.length+' of '+bgShippers.length+' shippers';
   const mini=$('bgship-mini');
   if(mini) mini.innerHTML=`
-    <div class="kpi blue" style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Total Shippers</div><div class="kpi-value" style="font-size:16px">${bgShippers.length.toLocaleString()}</div></div>
+    <div class="kpi blue" style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Total Shippers</div><div class="kpi-value" style="font-size:16px">${bgShippers.length.toLocaleString()}</div><div class="kpi-sub" style="font-size:9px">${ls.length!==bgShippers.length?ls.length+' shown':''}</div></div>
     <div class="kpi teal" style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Appt Required</div><div class="kpi-value" style="font-size:16px">${bgShippers.filter(s=>s.appointments).length}</div></div>
   `;
   const tb=$('bgship-tb');if(!tb)return;
@@ -7878,7 +7878,7 @@ function renderBGConsignees() {
   if($('bgcons-cnt'))$('bgcons-cnt').textContent=ls.length+' of '+bgConsignees.length+' consignees';
   const mini=$('bgcons-mini');
   if(mini) mini.innerHTML=`
-    <div class="kpi blue" style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Total Consignees</div><div class="kpi-value" style="font-size:16px">${bgConsignees.length.toLocaleString()}</div></div>
+    <div class="kpi blue" style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Total Consignees</div><div class="kpi-value" style="font-size:16px">${bgConsignees.length.toLocaleString()}</div><div class="kpi-sub" style="font-size:9px">${ls.length!==bgConsignees.length?ls.length+' shown':''}</div></div>
     <div class="kpi teal" style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Appt Required</div><div class="kpi-value" style="font-size:16px">${bgConsignees.filter(c=>c.appointments).length}</div></div>
   `;
   const tb=$('bgcons-tb');if(!tb)return;
