@@ -184,9 +184,8 @@ select option{background:var(--bg4)}
 .stmt-brand{font-family:var(--font-brand);letter-spacing:1px}
 body.light .logo{background:linear-gradient(180deg,rgba(59,130,246,.04) 0%,transparent 100%)}
 body.light .logo-mark{background:linear-gradient(135deg,#2563eb 0%,#3b82f6 45%,#64748b 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-</style>
-
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}</head><body><div id="toast"></div>
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+</style></head><body><div id="toast"></div>
 
 <!-- MODAL: Load -->
 <div class="mo" id="mLoad">
@@ -2390,13 +2389,13 @@ function nav(page) {
   document.querySelectorAll('.nav-item').forEach(n => {
     if (n.getAttribute('onclick')?.includes("'"+page+"'")) n.classList.add('active');
   });
-  if (page === 'bg-dispatch')   { renderBGBoard(); }
-  if (page === 'bg-customers')  { renderBGCustomers(); }
-  if (page === 'bg-carriers')   { renderBGCarriers(); }
-  if (page === 'bg-shippers')   { renderBGShippers(); }
-  if (page === 'bg-consignees') { renderBGConsignees(); }
-  if (page === 'bg-invoices')   { renderBGInvoices(); }
-  if (page === 'bg-carrierpay') { renderBGCarrierPay(); }
+  if (page === 'bg-dispatch')   { if(_bgDataLoaded) renderBGBoard();    else showBGLoading('bg-tb','bg-kpis'); }
+  if (page === 'bg-customers')  { if(_bgDataLoaded) renderBGCustomers(); else showBGLoading('bgcust-tb','bgcust-mini'); }
+  if (page === 'bg-carriers')   { if(_bgDataLoaded) renderBGCarriers();  else showBGLoading('bgcarr-tb','bgcarr-mini'); }
+  if (page === 'bg-shippers')   { if(_bgDataLoaded) renderBGShippers();  else showBGLoading('bgship-tb','bgship-mini'); }
+  if (page === 'bg-consignees') { if(_bgDataLoaded) renderBGConsignees();else showBGLoading('bgcons-tb','bgcons-mini'); }
+  if (page === 'bg-invoices')   { if(_bgDataLoaded) renderBGInvoices();  else showBGLoading('bginv-tb','bginv-kpis'); }
+  if (page === 'bg-carrierpay') { if(_bgDataLoaded) renderBGCarrierPay();else showBGLoading('bgcp-tb','bgcp-kpis'); }
   if (page === 'loadboard')     { renderLB(); renderLBMap(); }
   if (page === 'statements') { renderStmt(); renderStmtAnalytics(); }
   if (page === 'drivers')    renderDrivers();
@@ -6207,6 +6206,7 @@ function isBrokerUser() { return BG_ROLES.includes(window._userRole); }
 function isBrokerAcct() { return BG_ACCT_ROLES.includes(window._userRole); }
 
 // ── Init brokerage nav & data ──────────────────────────────────────
+let _bgDataLoaded = false;
 async function initBrokerage() {
   if (!isBrokerUser()) return;
   // Show nav items
@@ -6216,6 +6216,12 @@ async function initBrokerage() {
   if (isBrokerAcct()) {
     ['bg-invoices','bg-carrierpay'].forEach(id => { const el=$('nav-'+id); if(el) el.style.display='block'; });
   }
+  // Populate state selects for BG modals
+  const states = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'];
+  ['bgl_pu_state','bgl_del_state','bgc_state','bgcr_state','bgloc_state'].forEach(id => {
+    const el=$(id); if(!el) return;
+    states.forEach(s=>{ const o=document.createElement('option');o.value=s;o.textContent=s;el.appendChild(o); });
+  });
   // Load all data in parallel
   const [loads,custs,carrs,ships,cons,invs,cp] = await Promise.all([
     api.get('/api/bg/loads'),
@@ -6233,19 +6239,35 @@ async function initBrokerage() {
   bgConsignees = Array.isArray(cons)  ? cons  : [];
   bgInvoices   = Array.isArray(invs)  ? invs  : [];
   bgCarrierPay = Array.isArray(cp)    ? cp    : [];
+  _bgDataLoaded = true;
 
   // Populate rep dropdowns
   const reps = [...new Set(bgCustomers.map(c=>c.sales_rep).filter(Boolean))].sort();
   ['bg-rep','bgcust-rep'].forEach(id => {
     const el=$(id); if(!el) return;
+    el.innerHTML = '<option value="">All Reps</option>';
     reps.forEach(r=>{ const o=document.createElement('option');o.value=r;o.textContent=r;el.appendChild(o); });
   });
-  // Populate state selects for BG modals
-  const states = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'];
-  ['bgl_pu_state','bgl_del_state','bgc_state','bgcr_state','bgloc_state'].forEach(id => {
-    const el=$(id); if(!el) return;
-    states.forEach(s=>{ const o=document.createElement('option');o.value=s;o.textContent=s;el.appendChild(o); });
-  });
+
+  // If already on a brokerage page, render it now that data is loaded
+  const activePage = document.querySelector('.page.active');
+  if (activePage) {
+    const pageId = activePage.id.replace('page-','');
+    if (pageId.startsWith('bg-')) {
+      if (pageId==='bg-dispatch')   renderBGBoard();
+      if (pageId==='bg-customers')  renderBGCustomers();
+      if (pageId==='bg-carriers')   renderBGCarriers();
+      if (pageId==='bg-shippers')   renderBGShippers();
+      if (pageId==='bg-consignees') renderBGConsignees();
+      if (pageId==='bg-invoices')   renderBGInvoices();
+      if (pageId==='bg-carrierpay') renderBGCarrierPay();
+    }
+  }
+}
+
+function showBGLoading(tbId, kpiId) {
+  const tb=$(tbId); if(tb) tb.innerHTML=`<tr><td colspan="20" style="text-align:center;padding:30px;color:var(--text3)"><div style="font-size:14px">⏳ Loading data…</div></td></tr>`;
+  const ki=$(kpiId); if(ki) ki.innerHTML=`<div style="color:var(--text3);font-size:12px;padding:10px">Loading…</div>`;
 }
 
 // ── DISPATCH BOARD ─────────────────────────────────────────────────
@@ -6850,7 +6872,7 @@ function renderBGCarriers() {
     const cargoExp = c.cargo_ins_expiry ? String(c.cargo_ins_expiry).slice(0,10) : '';
     const days = cargoExp ? Math.round((new Date(cargoExp+'T00:00:00')-new Date())/86400000) : 999;
     const rowBg = c.blacklisted ? 'background:rgba(239,68,68,.07)' : days<=7&&days>=0 ? 'background:rgba(239,68,68,.05)' : '';
-    return `<tr style="${rowBg}">
+    return `<tr style="${rowBg}cursor:pointer" onclick="showBGCarrierDetail(${c.id})">
       <td style="font-weight:600">${c.blacklisted?'⛔ ':''}${days<=7&&days>=0?'🔴 ':''}${c.name||''}</td>
       <td style="font-size:11px">${c.mc_number||'—'}</td>
       <td style="font-size:11px">${c.dot_number||'—'}</td>
@@ -7137,7 +7159,7 @@ function renderBGCustomers() {
   }
 
   const tb=$('bgcust-tb'); if(!tb)return;
-  tb.innerHTML = ls.map(c=>`<tr style="${c.blacklisted?'background:rgba(239,68,68,.07)':''}">
+  tb.innerHTML = ls.map(c=>`<tr style="${c.blacklisted?'background:rgba(239,68,68,.07)':''}cursor:pointer" onclick="showBGCustomerDetail(${c.id})">
     <td style="font-weight:600">${c.blacklisted?'⛔ ':''}${c.company_name||''}</td>
     <td>${c.contact||'—'}</td><td>${c.telephone||'—'}</td><td style="font-size:11px">${c.email||'—'}</td>
     <td>${c.city||'—'}</td><td>${c.state||'—'}</td>
@@ -7145,8 +7167,8 @@ function renderBGCustomers() {
     <td><span style="background:var(--bg4);padding:2px 7px;border-radius:4px;font-size:10px">${c.payment_terms||'Net 30'}</span></td>
     <td>${c.credit_limit>0?f$(c.credit_limit):'—'}</td>
     <td style="display:flex;gap:4px">
-      <button class="edit-btn" onclick="openBGCustomer(${c.id})">✏</button>
-      <button class="edit-btn" onclick="openBGEntityFiles('customers',${c.id},'${(c.company_name||'').replace(/'/g,"\\'")}')">📎</button>
+      <button class="edit-btn" onclick="event.stopPropagation();openBGCustomer(${c.id})">✏</button>
+      <button class="edit-btn" onclick="event.stopPropagation();openBGEntityFiles('customers',${c.id},'${(c.company_name||'').replace(/'/g,"\\'")}')">📎</button>
     </td>
   </tr>`).join('');
 }
@@ -7163,7 +7185,7 @@ function renderBGShippers() {
     <div class="kpi teal" style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Appt Required</div><div class="kpi-value" style="font-size:16px">${bgShippers.filter(s=>s.appointments).length}</div></div>
   `;
   const tb=$('bgship-tb');if(!tb)return;
-  tb.innerHTML=ls.slice(0,300).map(s=>`<tr>
+  tb.innerHTML=ls.slice(0,300).map(s=>`<tr style="cursor:pointer" onclick="showBGLocationDetail('shippers',${s.id})">
     <td style="font-weight:600">${s.name||''}</td>
     <td style="font-size:11px">${s.address||'—'}</td>
     <td>${s.city||'—'}</td><td>${s.state||'—'}</td><td>${s.zip||'—'}</td>
@@ -7171,8 +7193,8 @@ function renderBGShippers() {
     <td style="font-size:11px">${s.hours||'—'}</td>
     <td>${s.appointments?'<span style="color:var(--blue)">Yes</span>':'No'}</td>
     <td style="display:flex;gap:4px">
-      <button class="edit-btn" onclick="openBGShipper(${s.id})">✏</button>
-      <button class="edit-btn" onclick="openBGEntityFiles('shippers',${s.id},'${(s.name||'').replace(/'/g,"\\'")}')">📎</button>
+      <button class="edit-btn" onclick="event.stopPropagation();openBGShipper(${s.id})">✏</button>
+      <button class="edit-btn" onclick="event.stopPropagation();openBGEntityFiles('shippers',${s.id},'${(s.name||'').replace(/'/g,"\\'")}')">📎</button>
     </td>
   </tr>`).join('');
 }
@@ -7189,7 +7211,7 @@ function renderBGConsignees() {
     <div class="kpi teal" style="padding:8px 12px"><div class="kpi-label" style="font-size:9px">Appt Required</div><div class="kpi-value" style="font-size:16px">${bgConsignees.filter(c=>c.appointments).length}</div></div>
   `;
   const tb=$('bgcons-tb');if(!tb)return;
-  tb.innerHTML=ls.slice(0,300).map(c=>`<tr>
+  tb.innerHTML=ls.slice(0,300).map(c=>`<tr style="cursor:pointer" onclick="showBGLocationDetail('consignees',${c.id})">
     <td style="font-weight:600">${c.name||''}</td>
     <td style="font-size:11px">${c.address||'—'}</td>
     <td>${c.city||'—'}</td><td>${c.state||'—'}</td><td>${c.zip||'—'}</td>
@@ -7197,8 +7219,8 @@ function renderBGConsignees() {
     <td style="font-size:11px">${c.hours||'—'}</td>
     <td>${c.appointments?'<span style="color:var(--blue)">Yes</span>':'No'}</td>
     <td style="display:flex;gap:4px">
-      <button class="edit-btn" onclick="openBGConsignee(${c.id})">✏</button>
-      <button class="edit-btn" onclick="openBGEntityFiles('consignees',${c.id},'${(c.name||'').replace(/'/g,"\\'")}')">📎</button>
+      <button class="edit-btn" onclick="event.stopPropagation();openBGConsignee(${c.id})">✏</button>
+      <button class="edit-btn" onclick="event.stopPropagation();openBGEntityFiles('consignees',${c.id},'${(c.name||'').replace(/'/g,"\\'")}')">📎</button>
     </td>
   </tr>`).join('');
 }
@@ -7250,5 +7272,115 @@ async function uploadBGCarrierFile() {
       renderBGCarriers();
     } else toast('Upload failed: '+(data.error||''),true);
   } catch(e){toast('Error: '+e.message,true);}
+}
+
+// ── ROW CLICK DETAIL PANELS ───────────────────────────────────────
+function showBGCarrierDetail(id) {
+  const c = bgCarriers.find(x=>x.id===id); if(!c) return;
+  const today = localDate();
+  const cargoExp = c.cargo_ins_expiry ? String(c.cargo_ins_expiry).slice(0,10) : '';
+  const liabExp  = c.liability_ins_expiry ? String(c.liability_ins_expiry).slice(0,10) : '';
+  showBGDetailPanel(`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+      <div>
+        <div style="font-size:16px;font-weight:800;color:var(--text)">${c.blacklisted?'⛔ ':''}${c.name}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${c.city||''}${c.state?', '+c.state:''} ${c.zip||''}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="openBGCarrier(${c.id})">✏ Edit</button>
+        <button class="btn btn-primary btn-sm" onclick="openBGCarrierFiles(${c.id},'${(c.name||'').replace(/'/g,"\\'")}')">📎 Files</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+      <div class="sinfo"><div class="sinfo-label">MC #</div><div class="sinfo-val">${c.mc_number||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">DOT #</div><div class="sinfo-val">${c.dot_number||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Contact</div><div class="sinfo-val">${c.contact||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Phone</div><div class="sinfo-val">${c.telephone||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Email</div><div class="sinfo-val" style="font-size:10px">${c.email||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Tax ID</div><div class="sinfo-val">${c.tax_id||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Pay Terms</div><div class="sinfo-val">${c.pay_term||'Net 30'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Trucks</div><div class="sinfo-val">${c.truck_count||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Cargo Ins</div><div class="sinfo-val">${c.cargo_ins_amount?'$'+Number(c.cargo_ins_amount).toLocaleString():'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Cargo Expiry</div><div class="sinfo-val">${bgInsuranceBadge(cargoExp)}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Liability</div><div class="sinfo-val">${c.liability_ins_amount?'$'+Number(c.liability_ins_amount).toLocaleString():'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Liab Expiry</div><div class="sinfo-val">${bgInsuranceBadge(liabExp)}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Factoring</div><div class="sinfo-val">${c.factoring_company||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Status</div><div class="sinfo-val">${c.blacklisted?'<span style="color:var(--red);font-weight:700">⛔ Blacklisted</span>':'<span style="color:var(--green)">✓ Active</span>'}</div></div>
+    </div>
+    ${c.notes?`<div style="margin-top:12px;padding:10px;background:var(--bg4);border-radius:6px;font-size:11px;color:var(--text2)">${c.notes}</div>`:''}
+  `);
+}
+
+function showBGCustomerDetail(id) {
+  const c = bgCustomers.find(x=>x.id===id); if(!c) return;
+  showBGDetailPanel(`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+      <div>
+        <div style="font-size:16px;font-weight:800;color:var(--text)">${c.blacklisted?'⛔ ':''}${c.company_name}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${c.city||''}${c.state?', '+c.state:''}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="openBGCustomer(${c.id})">✏ Edit</button>
+        <button class="btn btn-primary btn-sm" onclick="openBGEntityFiles('customers',${c.id},'${(c.company_name||'').replace(/'/g,"\\'")}')">📎 Files</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+      <div class="sinfo"><div class="sinfo-label">Contact</div><div class="sinfo-val">${c.contact||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Phone</div><div class="sinfo-val">${c.telephone||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Email</div><div class="sinfo-val" style="font-size:10px">${c.email||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Billing Email</div><div class="sinfo-val" style="font-size:10px">${c.billing_email||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Sales Rep</div><div class="sinfo-val">${c.sales_rep||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Payment Terms</div><div class="sinfo-val">${c.payment_terms||'Net 30'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Credit Limit</div><div class="sinfo-val">${c.credit_limit>0?f$(c.credit_limit):'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Address</div><div class="sinfo-val" style="font-size:10px">${c.address||'—'}</div></div>
+    </div>
+    ${c.notes?`<div style="margin-top:12px;padding:10px;background:var(--bg4);border-radius:6px;font-size:11px;color:var(--text2)">${c.notes}</div>`:''}
+  `);
+}
+
+function showBGLocationDetail(type, id) {
+  const arr = type==='shippers' ? bgShippers : bgConsignees;
+  const s = arr.find(x=>x.id===id); if(!s) return;
+  const label = type==='shippers' ? 'Shipper' : 'Consignee';
+  showBGDetailPanel(`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+      <div>
+        <div style="font-size:16px;font-weight:800;color:var(--text)">${s.name}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${s.city||''}${s.state?', '+s.state:''} ${s.zip||''}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="${type==='shippers'?'openBGShipper':'openBGConsignee'}(${s.id})">✏ Edit</button>
+        <button class="btn btn-primary btn-sm" onclick="openBGEntityFiles('${type}',${s.id},'${(s.name||'').replace(/'/g,"\\'")}')">📎 Files</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+      <div class="sinfo"><div class="sinfo-label">Address</div><div class="sinfo-val" style="font-size:10px">${s.address||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Contact</div><div class="sinfo-val">${s.contact||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Phone</div><div class="sinfo-val">${s.telephone||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Email</div><div class="sinfo-val" style="font-size:10px">${s.email||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Hours</div><div class="sinfo-val">${s.hours||'—'}</div></div>
+      <div class="sinfo"><div class="sinfo-label">Appointment</div><div class="sinfo-val">${s.appointments?'<span style="color:var(--blue)">Required</span>':'Not Required'}</div></div>
+    </div>
+    ${s.notes?`<div style="margin-top:12px;padding:10px;background:var(--bg4);border-radius:6px;font-size:11px;color:var(--text2)">${s.notes}</div>`:''}
+    ${s.internal_notes?`<div style="margin-top:8px;padding:10px;background:rgba(239,68,68,.07);border-radius:6px;font-size:11px;color:var(--text2)">🔒 Internal: ${s.internal_notes}</div>`:''}
+  `);
+}
+
+function showBGDetailPanel(html) {
+  let panel = $('bg-detail-panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'bg-detail-panel';
+    panel.style.cssText = 'position:fixed;right:0;top:0;bottom:0;width:380px;background:var(--bg2);border-left:1px solid var(--border2);z-index:200;overflow-y:auto;box-shadow:-4px 0 20px rgba(0,0,0,.2);transform:translateX(100%);transition:transform .2s';
+    panel.innerHTML = '<div style="padding:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Details</span><button onclick="closeBGDetailPanel()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:2px 6px">✕</button></div><div id="bg-detail-content"></div></div>';
+    document.body.appendChild(panel);
+  }
+  $('bg-detail-content').innerHTML = html;
+  setTimeout(() => { panel.style.transform = 'translateX(0)'; }, 10);
+}
+
+function closeBGDetailPanel() {
+  const p = $('bg-detail-panel');
+  if (p) p.style.transform = 'translateX(100%)';
 }
 </script></body></html>
